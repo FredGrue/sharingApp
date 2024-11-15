@@ -1,0 +1,27 @@
+ion-label {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+ion-input {
+  font-size: 16px;
+}
+
+/* Styling für ion-item und ion-input */
+ion-item {
+  --border-width: 0 0 1px 0; /* Nur die untere Linie anzeigen */
+  --border-color: #006470; /* Farbe der Linie anpassen */
+  --background: transparent;
+  --ion-background-color: transparent;
+  --ion-border-color: transparent;
+  margin-bottom: 15px;
+}
+
+ion-input {
+  --background: transparent;
+  --color: #ffffff; /* Textfarbe anpassen, falls nötig */
+}
+
+ion-button{
+  --color : #006470;
+}

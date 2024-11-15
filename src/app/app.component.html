@@ -1,0 +1,53 @@
+<ion-menu contentId="main-content">
+  <ion-header>
+    <ion-toolbar color="darkgrey">
+      <!-- Willkommensnachricht und Nutzername -->
+      <div style="text-align: center;">
+        <h3>Willkommen,</h3>
+        <ion-title>{{ userName || 'Admin' }}</ion-title>
+        <ion-menu-toggle auto-hide="true">
+          <!-- Icons unter der Willkommensnachricht -->
+          <div style="display: flex; justify-content: center; margin-top: 10px; gap: 20px;">
+            <!-- Inbox-Icon -->
+            <ion-button fill="clear" routerLink="/inbox">
+              <ion-icon name="mail-outline" size="large" color="primary"></ion-icon>
+            </ion-button>
+
+            <!-- Logout-Icon -->
+            <ion-button fill="clear" (click)="onLogout()">
+              <ion-icon name="log-out-outline" size="large" color="danger"></ion-icon>
+            </ion-button>
+          </div>
+        </ion-menu-toggle>
+      </div>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <ion-list>
+
+
+      <!-- Dynamische Menüpunkte je nach Rolle -->
+      <ion-menu-toggle auto-hide="true">
+      <ion-list>
+        <ion-item *ngFor="let item of menuItems" routerLink="{{ item.path }}">
+          <ion-icon [name]="item.icon" slot="start" style="color: #006470"></ion-icon>
+          <ion-label>{{ item.title }}</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-menu-toggle>
+    </ion-list>
+  </ion-content>
+</ion-menu>
+
+<!-- Header wird nur angezeigt, wenn showHeader true ist -->
+<ion-header *ngIf="showHeader">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Dashboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-router-outlet id="main-content"></ion-router-outlet>

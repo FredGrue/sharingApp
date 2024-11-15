@@ -1,0 +1,38 @@
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Anmeldung</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <form (ngSubmit)="onLogin()">
+        <!-- Rollenwahl mit ion-segment -->
+        <ion-segment [(ngModel)]="role" name="role" (ionChange)="onRoleChange()" value="user">
+          <ion-segment-button value="user">
+            <ion-label>Nutzer</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="admin">
+            <ion-label>Admin</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+        <br>
+        <br>
+        <!-- Eingabefeld für den Namen mit verbessertem Layout -->
+        <ion-item>
+          <ion-label position="stacked">Name</ion-label>
+          <ion-input
+            [(ngModel)]="userName"
+            name="userName"
+            [disabled]="role === 'admin'"
+            placeholder="Geben Sie Ihren Namen ein"
+            clearInput
+          ></ion-input>
+        </ion-item>
+
+
+        <!-- Login-Button -->
+        <ion-button expand="full" type="submit" color="custom-button">Login</ion-button>
+      </form>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

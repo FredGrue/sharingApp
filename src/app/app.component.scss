@@ -15,3 +15,15 @@ ion-menu {
     --color: #ffffff;
   }
   
+  .gradient-header {
+    --background: linear-gradient(to right, #333333, #666666);
+    --ion-toolbar-background: linear-gradient(to right, #333333, #666666);
+    --color: #ffffff; /* Textfarbe auf Weiß setzen */
+  }
+  
+  ion-title {
+    font-weight: bold;
+    font-size: 20px;
+    color: #ffffff;
+    text-align: center;
+  }

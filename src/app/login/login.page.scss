@@ -9,8 +9,6 @@ ion-input {
 
 /* Styling für ion-item und ion-input */
 ion-item {
-  --border-width: 0 0 1px 0; /* Nur die untere Linie anzeigen */
-  --border-color: #006470; /* Farbe der Linie anpassen */
   --background: transparent;
   --ion-background-color: transparent;
   --ion-border-color: transparent;
@@ -18,10 +16,42 @@ ion-item {
 }
 
 ion-input {
-  --background: transparent;
+  --background: #6b6b6b27;
   --color: #ffffff; /* Textfarbe anpassen, falls nötig */
 }
 
-ion-button{
-  --color : #006470;
+.custom-button {
+  --border-width: 0.1px;
+  --border-color: #006470;
+  --border-style: solid;
+  --border-radius: 500px; /* Abgerundete Ecken */
+  --background: transparent;
+  --color: #d3d3d3; /* Hellgraue Schriftfarbe */
+  --ion-color-base: transparent;
+  width: 50%;
+  display: block;
+  margin: 0 auto;
+}
+
+.custom-button:hover {
+  --background: #a3a3a334;
+  --color: #ffffff; /* Weißer Text beim Hover */
+}
+
+ion-segment {
+  --indicator-color: transparent; /* Entfernt die Standard-Indikatorlinie */
+}
+
+ion-segment-button {
+  --color: #006470; /* Standardfarbe des Textes */
+  --border-width: 0; /* Entfernt den Rahmen des inaktiven Buttons */
+  --button-background: transparent; /* Hintergrund des Buttons transparent */
+  --border-radius: 0; /* Abgerundete Ecken */
+}
+
+ion-segment-button.segment-button-checked {
+  --border-color: #006470;
+  --border-width: 0 0 2px 0; /* Untere Linie für den aktiven Button */
+  --border-color: #006470; /* Farbe der unteren Linie */
+  --border-radius: 0; /* Abgerundete Ecken */
 }

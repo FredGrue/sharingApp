@@ -1,27 +1,30 @@
 <ion-menu contentId="main-content">
-  <ion-header>
-    <ion-toolbar color="darkgrey">
-      <!-- Willkommensnachricht und Nutzername -->
-      <div style="text-align: center;">
-        <h3>Willkommen,</h3>
-        <ion-title>{{ userName || 'Admin' }}</ion-title>
-        <ion-menu-toggle auto-hide="true">
-          <!-- Icons unter der Willkommensnachricht -->
-          <div style="display: flex; justify-content: center; margin-top: 10px; gap: 20px;">
-            <!-- Inbox-Icon -->
-            <ion-button fill="clear" routerLink="/inbox">
-              <ion-icon name="mail-outline" size="large" color="primary"></ion-icon>
-            </ion-button>
+  <ion-header *ngIf="showHeader">
+    <ion-toolbar class="gradient-header">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <!-- Linker Bereich: Willkommensnachricht und Benutzername -->
+        <div style="text-align: left;">
+          <h3 style="margin: 0;">Willkommen, {{ userName || 'Admin' }}</h3>
+        </div>     
+      </div>
+  
+      <!-- Rechter Bereich: Timestamp -->
+      <div style="text-align: left; font-size: 14px; color: #d3d3d3;">
+        {{ currentTimestamp }}
+      </div>
 
-            <!-- Logout-Icon -->
-            <ion-button fill="clear" (click)="onLogout()">
-              <ion-icon name="log-out-outline" size="large" color="danger"></ion-icon>
-            </ion-button>
-          </div>
-        </ion-menu-toggle>
+      <!-- Icons für Inbox und Logout zentriert unter dem Text -->
+      <div style="display: flex; justify-content: left; margin-top: 10px; gap: 20px;">
+        <ion-button fill="clear" routerLink="/inbox">
+          <ion-icon name="mail-outline" size="large" color="primary"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" (click)="onLogout()">
+          <ion-icon name="log-out-outline" size="large" color="danger"></ion-icon>
+        </ion-button>
       </div>
     </ion-toolbar>
   </ion-header>
+  
 
   <ion-content>
     <ion-list>
@@ -42,11 +45,11 @@
 
 <!-- Header wird nur angezeigt, wenn showHeader true ist -->
 <ion-header *ngIf="showHeader">
-  <ion-toolbar color="primary">
+  <ion-toolbar class="gradient-header">
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Dashboard</ion-title>
+    <ion-title>MQ Sharing</ion-title>
   </ion-toolbar>
 </ion-header>
 

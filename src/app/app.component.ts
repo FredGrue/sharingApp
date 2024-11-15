@@ -40,6 +40,7 @@ export class AppComponent {
   userName: string = '';
   menuItems: any[] = [];
   showHeader: boolean = true;
+  currentTimestamp: string = '';
 
   constructor(
     private router: Router,
@@ -81,6 +82,31 @@ export class AppComponent {
     this.router.events.subscribe(() => {
       this.checkCurrentRoute();
     });
+
+    this.updateTimestamp();
+    // Aktualisiere den Timestamp alle 10 Sekunden
+    setInterval(() => this.updateTimestamp(), 10000);
+
+    this.sessionService.sessionData$.subscribe((session) => {
+      if (session) {
+        this.userName = session.role === 'user' ? session.userName : 'Admin';
+      } else {
+        this.userName = '';
+      }
+    });
+
+  }
+
+  // Methode zur Aktualisierung des Timestamps
+  updateTimestamp() {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    this.currentTimestamp = `${day}.${month}.${year}, ${hours}:${minutes}:${seconds}`;
   }
 
   // Methode zur Registrierung der Icons

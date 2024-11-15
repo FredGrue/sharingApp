@@ -31,8 +31,18 @@
 
 
         <!-- Login-Button -->
-        <ion-button expand="full" type="submit" color="custom-button">Login</ion-button>
+        
       </form>
     </ion-card-content>
   </ion-card>
+  <form (ngSubmit)="onLogin()">
+    <ion-button
+      expand="full"
+      type="submit"
+      class="custom-button"
+      [disabled]="role === 'user' && !userName.trim()">
+      Login
+    </ion-button>
+  </form>
 </ion-content>
+  

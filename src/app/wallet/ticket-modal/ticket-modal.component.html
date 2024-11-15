@@ -1,0 +1,56 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Neues Ticket erstellen</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss()">Schließen</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <!-- Fahrzeugauswahl -->
+    <ion-item>
+      <ion-label>Fahrzeug</ion-label>
+      <ion-select [(ngModel)]="selectedCar" placeholder="Fahrzeug auswählen">
+        <ion-select-option *ngFor="let car of availableCars">{{ car }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <!-- Ablaufdatum -->
+    <ion-item>
+      <ion-label>Ablaufdatum</ion-label>
+      <ion-datetime display-format="DD.MM.YYYY" [(ngModel)]="validUntil"></ion-datetime>
+    </ion-item>
+
+    <!-- Zugriffsoptionen -->
+    <ion-item>
+      <ion-label>Türen öffnen</ion-label>
+      <ion-toggle [(ngModel)]="doorAccess"></ion-toggle>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Fenster öffnen</ion-label>
+      <ion-toggle [(ngModel)]="windowAccess"></ion-toggle>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Kofferraum öffnen</ion-label>
+      <ion-toggle [(ngModel)]="trunkAccess"></ion-toggle>
+    </ion-item>
+
+    <!-- Geschwindigkeitsbegrenzung -->
+    <ion-item>
+      <ion-label>Geschwindigkeitslimit</ion-label>
+      <ion-select [(ngModel)]="speedLimit" placeholder="Limit wählen">
+        <ion-select-option value="80">80 km/h</ion-select-option>
+        <ion-select-option value="100">100 km/h</ion-select-option>
+        <ion-select-option value="130">130 km/h</ion-select-option>
+        <ion-select-option value="full">Keine Begrenzung</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <!-- Erstellen-Button -->
+    <ion-button expand="block" (click)="createTicket()">Ticket erstellen</ion-button>
+  </ion-list>
+</ion-content>

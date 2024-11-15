@@ -5,10 +5,43 @@ import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalo
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 
+import { importProvidersFrom } from '@angular/core';
+import { IonicModule } from '@ionic/angular';
+
+import { addIcons } from 'ionicons';
+import { addOutline } from 'ionicons/icons';
+
+addIcons({
+  'add-outline': addOutline,
+});
+
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
+    importProvidersFrom(IonicModule.forRoot()),
   ],
-});
+}).catch((err) => console.error(err));
+
+// Dynamisches Design je nach Systemeinstellung
+function applyThemeBasedOnSystemPreference() {
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+  // Funktion zum Setzen des Themas
+  const updateTheme = (isDarkMode: boolean) => {
+    document.body.classList.toggle('dark', isDarkMode);
+  };
+
+  // Initiales Setzen des Themas
+  updateTheme(prefersDark.matches);
+
+  // Überwacht Änderungen der Systemeinstellungen
+  prefersDark.addEventListener('change', (event) => {
+    updateTheme(event.matches);
+  });
+}
+
+// Thema anwenden
+applyThemeBasedOnSystemPreference();
+

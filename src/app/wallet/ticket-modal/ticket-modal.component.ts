@@ -1,7 +1,10 @@
 import { Component } from '@angular/core';
-import { ModalController, IonicModule } from '@ionic/angular';
+import { ModalController, IonicModule, PopoverController } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DateTimePopoverComponent } from './datetime-popover.component';
+
+
 
 @Component({
   selector: 'app-ticket-modal',
@@ -10,6 +13,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './ticket-modal.component.html',
   styleUrls: ['./ticket-modal.component.scss'],
 })
+
 export class TicketModalComponent {
   availableCars = ['Car A', 'Car B', 'Car C'];
   selectedCar: string = '';
@@ -19,10 +23,24 @@ export class TicketModalComponent {
   trunkAccess: boolean = false;
   speedLimit: string = '';
 
-  constructor(private modalController: ModalController) {}
+  constructor(private modalController: ModalController, private popoverController: PopoverController) {}
 
   dismiss() {
     this.modalController.dismiss();
+  }
+
+  async openDateTimePopover(event: any) {
+    const popover = await this.popoverController.create({
+      component: DateTimePopoverComponent,
+      event: event,
+      translucent: true,
+    });
+    await popover.present();
+
+    const { data } = await popover.onDidDismiss();
+    if (data) {
+      this.validUntil = data;
+    }
   }
 
   createTicket() {

@@ -17,10 +17,15 @@
       </ion-select>
     </ion-item>
 
-    <!-- Ablaufdatum -->
+    <!-- Datumsauswahl mit Popover -->
     <ion-item>
       <ion-label>Ablaufdatum</ion-label>
-      <ion-datetime display-format="DD.MM.YYYY" [(ngModel)]="validUntil"></ion-datetime>
+      <ion-input
+        readonly
+        placeholder="Datum wählen"
+        [(ngModel)]="validUntil"
+        (click)="openDateTimePopover($event)"
+      ></ion-input>
     </ion-item>
 
     <!-- Zugriffsoptionen -->

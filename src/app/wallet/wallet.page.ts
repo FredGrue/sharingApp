@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalController, IonicModule } from '@ionic/angular';
 import { IonModal } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { TicketModalComponent } from './ticket-modal/ticket-modal.component';
 import { CommonModule } from '@angular/common';
 import { TicketService } from '../services/ticket.service';
@@ -40,7 +41,9 @@ export class WalletPage {
   @ViewChild('ticketModal') ticketModal!: IonModal;
 
 
-  constructor(private modalController: ModalController, private ticketService: TicketService) {
+  constructor(private modalController: ModalController, 
+              private ticketService: TicketService, 
+              private alertController: AlertController) {
         // Icons registrieren
         this.registerIcons();
   }
@@ -72,18 +75,23 @@ export class WalletPage {
   }
 
   loadTickets() {
-    this.ticketService.getTickets().subscribe({
+    const currentUser = this.ticketService.getCurrentUser();
+    this.ticketService.getAssignedTickets(currentUser).subscribe({
       next: (data: any[]) => {
         this.tickets = data.map((ticket) => ({
           ...ticket,
           carName: this.getCarName(ticket.car),
         }));
-        console.log('Tickets geladen:', this.tickets);
       },
       error: (error) => {
         console.error('Fehler beim Laden der Tickets:', error);
       },
     });
+  }
+  
+  // Zugewiesene Tickets abrufen
+  getAssignedTickets(username: string) {
+    return this.ticketService.getAssignedTickets(username);
   }
 
   getCarName(carId: string): string {
@@ -151,8 +159,8 @@ export class WalletPage {
   deleteTicket(ticket: any) {
     console.log('deleteTicket() aufgerufen für Ticket ID:', ticket.id);
     this.ticketService.deleteTicket(ticket.id).subscribe({
-      next: () => {
-        console.log(`Ticket ${ticket.id} erfolgreich gelöscht.`);
+      next: (response) => {
+        console.log(`Ticket ${ticket.id} erfolgreich gelöscht.`, response);
         this.tickets = this.tickets.filter((t) => t.id !== ticket.id);
       },
       error: (error) => {
@@ -162,33 +170,33 @@ export class WalletPage {
     });
   }
   
-  confirmDelete(ticket: any) {
+  async confirmDelete(ticket: any) {
     console.log('Button "Delete" wurde geklickt.');
-    console.log('Lösche Ticket mit ID:', ticket.id); // Debugging-Log
+    console.log('Lösche Ticket mit ID:', ticket.id);
   
-    const alert = document.createElement('ion-alert');
-    alert.header = 'Bestätigung';
-    alert.message = 'Möchtest du dieses Ticket wirklich löschen?';
-    alert.buttons = [
-      {
-        text: 'Abbrechen',
-        role: 'cancel',
-        handler: () => {
-          console.log('Löschen abgebrochen.');
+    const alert = await this.alertController.create({
+      header: 'Bestätigung',
+      message: 'Möchtest du dieses Ticket wirklich löschen?',
+      buttons: [
+        {
+          text: 'Abbrechen',
+          role: 'cancel',
+          handler: () => {
+            console.log('Löschen abgebrochen.');
+          },
         },
-      },
-      {
-        text: 'Löschen',
-        role: 'destructive',
-        handler: () => {
-          console.log('Bestätigung erhalten. Lösche das Ticket.');
-          this.deleteTicket(ticket);
+        {
+          text: 'Löschen',
+          role: 'destructive',
+          handler: () => {
+            console.log('Bestätigung erhalten. Lösche das Ticket.');
+            this.deleteTicket(ticket);
+          },
         },
-      },
-    ];
+      ],
+    });
   
-    document.body.appendChild(alert);
-    alert.present();
+    await alert.present();
   }
 
   showErrorAlert(message: string) {

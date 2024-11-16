@@ -19,6 +19,9 @@ export class TicketModalComponent {
   // Variablen hinzufügen
   selectedCar: string = '';
   availableCars: string[] = ['Audi A6', 'DS 4', 'Ford Mustang E', 'Hyundai', 'E-Class Mercedes', 'GMC']; // Beispielhafte Fahrzeugliste
+  activeUsers: string[] = [];
+  sharedWithUser: string = '';
+
 
   car: string = '';
   validUntil: string = '';
@@ -50,14 +53,16 @@ export class TicketModalComponent {
   }
 
   createTicket() {
+    const currentUser = this.ticketService.getCurrentUser(); // Aktueller Nutzer
     const newTicket = {
-      car: this.selectedCar, // Korrektur hier: selectedCar statt car
+      car: this.selectedCar,
       validUntil: this.validUntil,
       doorAccess: this.doorAccess,
       windowAccess: this.windowAccess,
       trunkAccess: this.trunkAccess,
       engineStart: this.engineStart,
       speedLimit: this.speedLimit,
+      owner: currentUser, // Setze den aktuellen Nutzer als Eigentümer
     };
   
     this.ticketService.createTicket(newTicket).subscribe({
@@ -72,5 +77,26 @@ export class TicketModalComponent {
     });
   }
 
+  loadActiveUsers() {
+    this.ticketService.getActiveUsers().subscribe({
+      next: (users: string[]) => {
+        this.activeUsers = users.filter((user) => user !== this.selectedCar); // Entferne den aktuellen Nutzer aus der Liste
+        console.log('Aktive Nutzer geladen:', this.activeUsers);
+      },
+      error: (error) => {
+        console.error('Fehler beim Laden der aktiven Nutzer:', error);
+      },
+    });
+  }
 
+  shareTicket(ticketId: number, sharedWith: string) {
+    this.ticketService.shareTicket(ticketId, sharedWith).subscribe({
+      next: () => {
+        console.log(`Ticket ${ticketId} erfolgreich mit ${sharedWith} geteilt.`);
+      },
+      error: (error) => {
+        console.error('Fehler beim Teilen des Tickets:', error);
+      },
+    });
+  }
 }

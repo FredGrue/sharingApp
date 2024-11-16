@@ -48,7 +48,7 @@
 
     <ion-item>
       <ion-label>Engine Start</ion-label>
-      <ion-toggle [(ngModel)]="trunkAccess"></ion-toggle>
+      <ion-toggle [(ngModel)]="engineStart"></ion-toggle>
     </ion-item>
 
     <!-- Geschwindigkeitsbegrenzung -->
@@ -59,6 +59,13 @@
         <ion-select-option value="100">100 km/h</ion-select-option>
         <ion-select-option value="130">130 km/h</ion-select-option>
         <ion-select-option value="full">Keine Begrenzung</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Teilen mit</ion-label>
+      <ion-select [(ngModel)]="sharedWithUser" placeholder="Nutzer auswählen">
+        <ion-select-option *ngFor="let user of activeUsers" [value]="user">{{ user }}</ion-select-option>
       </ion-select>
     </ion-item>
 

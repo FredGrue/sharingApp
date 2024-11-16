@@ -11,6 +11,8 @@ import { IonicModule } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { addOutline } from 'ionicons/icons';
 
+import { HttpClientModule } from '@angular/common/http';
+
 addIcons({
   'add-outline': addOutline,
 });
@@ -20,7 +22,7 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
-    importProvidersFrom(IonicModule.forRoot()),
+    importProvidersFrom(IonicModule.forRoot(), HttpClientModule),
   ],
 }).catch((err) => console.error(err));
 

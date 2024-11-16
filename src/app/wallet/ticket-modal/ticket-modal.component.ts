@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { ModalController, IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TicketService } from '../../services/ticket.service';
 import { PopoverController } from '@ionic/angular';
 import { DateTimePopoverComponent } from './datetime-popover.component';
 
@@ -13,16 +14,22 @@ import { DateTimePopoverComponent } from './datetime-popover.component';
   styleUrls: ['./ticket-modal.component.scss'],
 })
 export class TicketModalComponent {
-  availableCars = ['Car A', 'Car B', 'Car C'];
+  @Output() ticketCreated = new EventEmitter<void>();
+
+  // Variablen hinzufügen
   selectedCar: string = '';
+  availableCars: string[] = ['Audi A6', 'DS 4', 'Ford Mustang E', 'Hyundai', 'E-Class Mercedes', 'GMC']; // Beispielhafte Fahrzeugliste
+
+  car: string = '';
   validUntil: string = '';
   doorAccess: boolean = false;
   windowAccess: boolean = false;
   trunkAccess: boolean = false;
   engineStart: boolean = false;
-  speedLimit: string = '';
-
-  constructor(private modalController: ModalController, private popoverController: PopoverController) {}
+  speedLimit: string = 'full';
+  constructor(private modalController: ModalController, 
+              private popoverController: PopoverController,
+              private ticketService: TicketService) {}
 
   dismiss() {
     this.modalController.dismiss();
@@ -44,7 +51,7 @@ export class TicketModalComponent {
 
   createTicket() {
     const newTicket = {
-      car: this.selectedCar,
+      car: this.selectedCar, // Korrektur hier: selectedCar statt car
       validUntil: this.validUntil,
       doorAccess: this.doorAccess,
       windowAccess: this.windowAccess,
@@ -52,7 +59,18 @@ export class TicketModalComponent {
       engineStart: this.engineStart,
       speedLimit: this.speedLimit,
     };
-    console.log('Neues Ticket:', newTicket);
-    this.dismiss();
+  
+    this.ticketService.createTicket(newTicket).subscribe({
+      next: (response) => {
+        console.log('Ticket erfolgreich erstellt:', response);
+        this.ticketCreated.emit();
+        this.dismiss();
+      },
+      error: (error) => {
+        console.error('Fehler beim Erstellen des Tickets:', error);
+      },
+    });
   }
+
+
 }

@@ -7,13 +7,15 @@
 <ion-content>
   <ion-list>
     <ion-card *ngFor="let ticket of tickets">
-      <ion-card-header>
-        <ion-card-title>{{ ticket.title }}</ion-card-title>
-      </ion-card-header>
-      <ion-card-content>
-        <p>Gültig bis: {{ ticket.validUntil }}</p>
-        <p>Geteilt mit: {{ ticket.sharedWith }}</p>
-      </ion-card-content>
+      <ion-label>
+        <h2>Fahrzeug: {{ ticket.carName }}</h2>
+        <p>Ablaufdatum: {{ ticket.validUntil }}</p>
+        <p>Geschwindigkeitslimit: {{ ticket.speedLimit }}</p>
+        <p>Zugriff: Türen {{ ticket.doorAccess ? 'Ja' : 'Nein' }},
+           Fenster {{ ticket.windowAccess ? 'Ja' : 'Nein' }},
+           Kofferraum {{ ticket.trunkAccess ? 'Ja' : 'Nein' }},
+           Motor {{ ticket.engineStart ? 'Ja' : 'Nein' }}</p>
+      </ion-label>
     </ion-card>
   </ion-list>
 

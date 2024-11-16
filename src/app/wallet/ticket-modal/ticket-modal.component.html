@@ -13,7 +13,7 @@
     <ion-item>
       <ion-label>Fahrzeug</ion-label>
       <ion-select [(ngModel)]="selectedCar" placeholder="Fahrzeug auswählen">
-        <ion-select-option *ngFor="let car of availableCars">{{ car }}</ion-select-option>
+        <ion-select-option *ngFor="let car of availableCars" [value]="car">{{ car }}</ion-select-option>
       </ion-select>
     </ion-item>
 

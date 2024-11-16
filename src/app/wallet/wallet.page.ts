@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalController, IonicModule } from '@ionic/angular';
+import { IonModal } from '@ionic/angular';
 import { TicketModalComponent } from './ticket-modal/ticket-modal.component';
 import { CommonModule } from '@angular/common';
+import { TicketService } from '../services/ticket.service';
 import { addIcons } from 'ionicons';
 import {
   logOutOutline,
@@ -34,14 +36,17 @@ import {
   imports: [IonicModule, CommonModule, TicketModalComponent],
 })
 export class WalletPage {
-  tickets = [
-    { id: 1, title: 'Ticket 1', validUntil: '2024-12-01', sharedWith: 'User A' },
-    { id: 2, title: 'Ticket 2', validUntil: '2024-12-15', sharedWith: 'User B' },
-  ];
+  tickets: any[] = [];
+  @ViewChild('ticketModal') ticketModal!: IonModal;
 
-  constructor(private modalController: ModalController) {
+
+  constructor(private modalController: ModalController, private ticketService: TicketService) {
         // Icons registrieren
         this.registerIcons();
+  }
+
+  ngOnInit() {
+    this.loadTickets();
   }
 
   async openTicketModal() {
@@ -51,6 +56,49 @@ export class WalletPage {
     await modal.present();
   }
   
+  ionViewWillEnter() {
+    this.loadTickets();
+  }
+
+  openModal() {
+    this.ticketModal.present();
+  }
+
+  onTicketCreated() {
+    this.loadTickets(); // Tickets neu laden, wenn ein Ticket erstellt wurde
+  }
+
+  loadTickets() {
+    this.ticketService.getTickets().subscribe({
+      next: (data: any[]) => {
+        this.tickets = data.map((ticket) => ({
+          ...ticket,
+          carName: this.getCarName(ticket.car),
+        }));
+        console.log('Tickets geladen:', this.tickets);
+      },
+      error: (error) => {
+        console.error('Fehler beim Laden der Tickets:', error);
+      },
+    });
+  }
+
+  getCarName(carId: string): string {
+    const carNames: Record<string, string> = {
+      'Audi A6': 'Audi A6', 
+      'DS 4': 'DS 4',
+      'Ford Mustang E': 'Ford Mustang E',
+      'Hyundai': 'Hyundai',
+      'E-Class Mercedes': 'E-Class Mercedes',
+      'GMC': 'GMC',
+      'BMW': 'BMW',
+      'Audi': 'Audi',
+      'Mercedes': 'Mercedes',
+      'Volkswagen': 'Volkswagen',
+    };
+    return carNames[carId] || 'Unbekanntes Fahrzeug';
+  }
+
   // Methode zur Registrierung der Icons
   registerIcons() {
     addIcons({

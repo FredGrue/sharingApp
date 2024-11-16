@@ -19,4 +19,9 @@ export class TicketService {
   createTicket(ticketData: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, ticketData);
   }
+  
+  deleteTicket(ticketId: string): Observable<any> {
+    console.log(`Sende DELETE-Anfrage an API: http://localhost:3000/api/tickets/${ticketId}`);
+    return this.http.delete(`http://localhost:3000/api/tickets/${ticketId}`);
+  }
 }

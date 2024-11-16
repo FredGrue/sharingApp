@@ -108,6 +108,26 @@ app.post('/tickets', (req, res) => {
   });
 });
 
+app.delete('/api/tickets/:id', (req, res) => {
+  const ticketId = req.params.id;
+  console.log(`Versuche, Ticket mit ID ${ticketId} zu löschen`);
+
+  const sql = 'DELETE FROM tickets WHERE id = ?';
+
+  db.run(sql, [ticketId], function (err) {
+    if (err) {
+      console.error('Fehler beim Löschen des Tickets:', err.message);
+      res.status(500).send({ error: 'Fehler beim Löschen des Tickets' });
+    } else if (this.changes === 0) {
+      console.warn(`Kein Ticket mit der ID ${ticketId} gefunden.`);
+      res.status(404).send({ error: 'Ticket nicht gefunden' });
+    } else {
+      console.log(`Ticket mit ID ${ticketId} erfolgreich gelöscht.`);
+      res.status(200).send({ message: 'Ticket erfolgreich gelöscht' });
+    }
+  });
+});
+
 // Test-Route zum Debuggen
 app.get('/test', (req, res) => {
   res.send('Test-Route funktioniert!');

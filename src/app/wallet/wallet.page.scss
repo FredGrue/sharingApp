@@ -5,3 +5,50 @@ ion-fab-button {
     --color: #006470;
   }
   
+  .ticket-card {
+    margin: 12px;
+    border-radius: 7px;
+    background-color: #262626;
+    box-shadow: 0 4px 8px rgba(153, 153, 153, 0.616);
+  }
+  
+  .car-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  .ticket-card {
+    margin: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .car-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+  
+  .button-group {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    border-top: 1px solid #ccc;
+  }
+  
+  ion-button {
+    font-size: 14px;
+    color: #333;
+    --border-width: 1px;
+    --border-style: solid;
+  }
+  
+  ion-button[color="danger"] {
+    color: var(--ion-color-danger);
+  }
+  

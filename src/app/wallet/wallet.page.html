@@ -6,7 +6,8 @@
 
 <ion-content>
   <ion-list>
-    <ion-card *ngFor="let ticket of tickets">
+    <ion-card *ngFor="let ticket of tickets" class="ticket-card">
+      <img [src]="getCarImage(ticket.carName)" alt="{{ ticket.carName }}" class="car-image" />
       <ion-label>
         <h2>Fahrzeug: {{ ticket.carName }}</h2>
         <p>Ablaufdatum: {{ ticket.validUntil }}</p>
@@ -16,13 +17,13 @@
            Kofferraum {{ ticket.trunkAccess ? 'Ja' : 'Nein' }},
            Motor {{ ticket.engineStart ? 'Ja' : 'Nein' }}</p>
       </ion-label>
+
+      <!-- Buttons am unteren Rand -->
+      <div class="button-group">
+        <ion-button fill="clear" (click)="useTicket(ticket)">Use</ion-button>
+        <ion-button fill="clear" (click)="manageTicket(ticket)">Manage</ion-button>
+        <ion-button fill="clear" color="danger" (click)="confirmDelete(ticket)">Delete</ion-button>
+      </div>
     </ion-card>
   </ion-list>
-
-  <!-- Floating Action Button -->
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button translucent="true" (click)="openTicketModal()">
-      <ion-icon name="add-outline"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
 </ion-content>

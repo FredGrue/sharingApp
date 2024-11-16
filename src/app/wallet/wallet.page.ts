@@ -49,9 +49,12 @@ export class WalletPage {
     this.loadTickets();
   }
 
-  async openTicketModal() {
+  async openTicketModal(ticket: any) {
     const modal = await this.modalController.create({
       component: TicketModalComponent,
+      componentProps: {
+        ticket: ticket, // Übergibt das Ticket-Objekt an das Modal
+      },
     });
     await modal.present();
   }
@@ -99,6 +102,16 @@ export class WalletPage {
     return carNames[carId] || 'Unbekanntes Fahrzeug';
   }
 
+  getCarImage(carName: string): string {
+    const imageMap: Record<string, string> = {
+      'Audi A6': 'assets/images/audi.png',
+      'DS 4': 'assets/images/ds.png',
+      'Ford Mustang E': 'assets/images/ford.png',
+      'Hyundai': 'assets/images/hyundai.png',
+      'E-Class Mercedes': 'assets/images/mercedes.png',
+    };
+    return imageMap[carName] || 'assets/images/default-car.png';
+  }
   // Methode zur Registrierung der Icons
   registerIcons() {
     addIcons({
@@ -123,6 +136,69 @@ export class WalletPage {
       'car-outline': carOutline,
       'car-sharp': carSharp,
     });
+  }
+
+  useTicket(ticket: any) {
+    console.log('Ticket aktivieren:', ticket);
+    // Hier kannst du das Ticket als aktiv markieren
+  }
+  
+  manageTicket(ticket: any) {
+    console.log('Ticket bearbeiten:', ticket);
+    this.openTicketModal(ticket);
+  }
+  
+  deleteTicket(ticket: any) {
+    console.log('deleteTicket() aufgerufen für Ticket ID:', ticket.id);
+    this.ticketService.deleteTicket(ticket.id).subscribe({
+      next: () => {
+        console.log(`Ticket ${ticket.id} erfolgreich gelöscht.`);
+        this.tickets = this.tickets.filter((t) => t.id !== ticket.id);
+      },
+      error: (error) => {
+        console.error('Fehler beim Löschen des Tickets:', error);
+        this.showErrorAlert('Das Ticket konnte nicht gelöscht werden. Bitte versuche es erneut.');
+      },
+    });
+  }
+  
+  confirmDelete(ticket: any) {
+    console.log('Button "Delete" wurde geklickt.');
+    console.log('Lösche Ticket mit ID:', ticket.id); // Debugging-Log
+  
+    const alert = document.createElement('ion-alert');
+    alert.header = 'Bestätigung';
+    alert.message = 'Möchtest du dieses Ticket wirklich löschen?';
+    alert.buttons = [
+      {
+        text: 'Abbrechen',
+        role: 'cancel',
+        handler: () => {
+          console.log('Löschen abgebrochen.');
+        },
+      },
+      {
+        text: 'Löschen',
+        role: 'destructive',
+        handler: () => {
+          console.log('Bestätigung erhalten. Lösche das Ticket.');
+          this.deleteTicket(ticket);
+        },
+      },
+    ];
+  
+    document.body.appendChild(alert);
+    alert.present();
+  }
+
+  showErrorAlert(message: string) {
+    const alert = document.createElement('ion-alert');
+    alert.header = 'Fehler';
+    alert.message = message;
+    alert.buttons = ['OK'];
+  
+    document.body.appendChild(alert);
+    alert.present();
   }
 
 }

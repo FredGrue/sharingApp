@@ -8,3 +8,11 @@ ion-button {
   --background: #006470;
   --color: white;
 }
+
+ion-item {
+  --inner-padding-start: 16px;
+}
+
+ion-input {
+  text-align: right;
+}

@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
-import { ModalController, IonicModule, PopoverController } from '@ionic/angular';
+import { ModalController, IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { PopoverController } from '@ionic/angular';
 import { DateTimePopoverComponent } from './datetime-popover.component';
-
-
 
 @Component({
   selector: 'app-ticket-modal',
@@ -13,7 +12,6 @@ import { DateTimePopoverComponent } from './datetime-popover.component';
   templateUrl: './ticket-modal.component.html',
   styleUrls: ['./ticket-modal.component.scss'],
 })
-
 export class TicketModalComponent {
   availableCars = ['Car A', 'Car B', 'Car C'];
   selectedCar: string = '';
@@ -21,6 +19,7 @@ export class TicketModalComponent {
   doorAccess: boolean = false;
   windowAccess: boolean = false;
   trunkAccess: boolean = false;
+  engineStart: boolean = false;
   speedLimit: string = '';
 
   constructor(private modalController: ModalController, private popoverController: PopoverController) {}
@@ -50,6 +49,7 @@ export class TicketModalComponent {
       doorAccess: this.doorAccess,
       windowAccess: this.windowAccess,
       trunkAccess: this.trunkAccess,
+      engineStart: this.engineStart,
       speedLimit: this.speedLimit,
     };
     console.log('Neues Ticket:', newTicket);

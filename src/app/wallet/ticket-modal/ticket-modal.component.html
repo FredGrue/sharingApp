@@ -25,28 +25,35 @@
         placeholder="Datum wählen"
         [(ngModel)]="validUntil"
         (click)="openDateTimePopover($event)"
+        class="ion-select"
+        style="text-align: center; margin-left: 10px;"
       ></ion-input>
     </ion-item>
 
     <!-- Zugriffsoptionen -->
     <ion-item>
-      <ion-label>Türen öffnen</ion-label>
+      <ion-label>Doors</ion-label>
       <ion-toggle [(ngModel)]="doorAccess"></ion-toggle>
     </ion-item>
 
     <ion-item>
-      <ion-label>Fenster öffnen</ion-label>
+      <ion-label>Windows</ion-label>
       <ion-toggle [(ngModel)]="windowAccess"></ion-toggle>
     </ion-item>
 
     <ion-item>
-      <ion-label>Kofferraum öffnen</ion-label>
+      <ion-label>Trunk</ion-label>
+      <ion-toggle [(ngModel)]="trunkAccess"></ion-toggle>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Engine Start</ion-label>
       <ion-toggle [(ngModel)]="trunkAccess"></ion-toggle>
     </ion-item>
 
     <!-- Geschwindigkeitsbegrenzung -->
     <ion-item>
-      <ion-label>Geschwindigkeitslimit</ion-label>
+      <ion-label>Speedlimit</ion-label>
       <ion-select [(ngModel)]="speedLimit" placeholder="Limit wählen">
         <ion-select-option value="80">80 km/h</ion-select-option>
         <ion-select-option value="100">100 km/h</ion-select-option>

@@ -84,6 +84,16 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('Ein Client hat die Verbindung getrennt.');
   });
+  // Nutzer registrieren
+  socket.on('register', (username) => {
+    console.log(`Nutzer "${username}" bei Socket.io registriert.`);
+    socket.join(username); // Der Socket tritt einem Raum mit dem Nutzernamen bei
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Ein Client hat die Verbindung getrennt.');
+  });
+
 });
 
 // In your backend server file (e.g., index.js or app.js)
@@ -211,7 +221,9 @@ app.post('/api/tickets/:ticketId/share', (req, res) => {
       console.error('Fehler beim Teilen des Tickets:', err.message);
       res.status(500).json({ message: 'Fehler beim Teilen des Tickets' });
     } else {
-      io.emit('ticketShared', { ticketId, sharedWith });
+      console.log(`Ticket ${ticketId} wurde erfolgreich mit ${sharedWith} geteilt.`);
+      // WebSocket-Benachrichtigung an den Empfänger des geteilten Tickets
+      io.to(sharedWith).emit('ticketSharedWithYou', { ticketId, sharedWith });
       res.status(200).json({ message: 'Ticket erfolgreich geteilt' });
     }
   });
@@ -240,13 +252,14 @@ app.get('/api/assigned-tickets/:username', (req, res) => {
 
 // Server starten
 server.listen(PORT, () => {
-  console.log(`Server läuft auf http://localhost:${PORT}`);
+  console.log(`Server läuft auf http://192.168.0.60:${PORT}`);
 });
 
 // API-Endpunkt: Aktive Nutzer abrufen
 app.get('/api/active-users', (req, res) => {
   const query = `
     SELECT username, lastActive FROM users
+    WHERE lastActive > datetime('now', '-1 hour')
     ORDER BY username;
   `;
 
@@ -344,20 +357,37 @@ app.post('/api/tickets/:ticketId/return', (req, res) => {
     return res.status(400).json({ message: 'Nutzername fehlt' });
   }
 
-  const query = `
-    DELETE FROM ticket_shares
-    WHERE ticketId = ? AND sharedWith = ?;
-  `;
-
-  db.run(query, [ticketId, username], (err) => {
+  // Besitzer des Tickets ermitteln
+  const getOwnerQuery = `SELECT owner FROM tickets WHERE id = ?`;
+  db.get(getOwnerQuery, [ticketId], (err, row) => {
     if (err) {
-      console.error('Fehler beim Zurückgeben des geteilten Tickets:', err.message);
-      res.status(500).json({ message: 'Fehler beim Zurückgeben des Tickets' });
-    } else {
-      console.log(`Geteiltes Ticket mit ID ${ticketId} wurde von ${username} zurückgegeben.`);
-      // WebSocket-Benachrichtigung an den Ersteller des Tickets
-      io.emit('ticketReturned', { ticketId, returnedBy: username });
-      res.status(200).json({ message: 'Ticket erfolgreich zurückgegeben' });
+      console.error('Fehler beim Abrufen des Besitzers:', err.message);
+      res.status(500).json({ message: 'Fehler beim Abrufen des Besitzers' });
+      return;
     }
+
+    const owner = row?.owner;
+    if (!owner) {
+      res.status(404).json({ message: 'Besitzer des Tickets nicht gefunden' });
+      return;
+    }
+
+    // Eintrag in der ticket_shares-Tabelle löschen
+    const deleteShareQuery = `
+      DELETE FROM ticket_shares
+      WHERE ticketId = ? AND sharedWith = ?;
+    `;
+    db.run(deleteShareQuery, [ticketId, username], (deleteErr) => {
+      if (deleteErr) {
+        console.error('Fehler beim Zurückgeben des geteilten Tickets:', deleteErr.message);
+        res.status(500).json({ message: 'Fehler beim Zurückgeben des Tickets' });
+      } else {
+        console.log(`Geteiltes Ticket mit ID ${ticketId} wurde von ${username} zurückgegeben.`);
+
+        // WebSocket-Benachrichtigung gezielt an den Besitzer des Tickets senden
+        io.to(owner).emit('ticketReturned', { ticketId, returnedBy: username });
+        res.status(200).json({ message: 'Ticket erfolgreich zurückgegeben' });
+      }
+    });
   });
 });

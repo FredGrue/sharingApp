@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { TicketService } from '../services/ticket.service';
 import { SessionService } from '../session.service';
 import { addIcons } from 'ionicons';
+import { environment } from '../../environments/environment';
 import { io } from 'socket.io-client';
 import {
   logOutOutline,
@@ -43,8 +44,8 @@ import {
 export class WalletPage {
   tickets: any[] = [];
   sharedTickets: any[] = [];
+  private socket = io(environment.socketUrl);
   @ViewChild('ticketModal') ticketModal!: IonModal;
-  private socket = io('http://localhost:3000'); // WebSocket-Verbindung
 
   constructor(
     private modalController: ModalController,
@@ -83,8 +84,15 @@ export class WalletPage {
 
     this.socket.on('ticketReturned', (data) => {
       console.log(`Ticket ${data.ticketId} wurde von ${data.returnedBy} zurückgegeben.`);
+      this.showTicketReturnedAlert(data.ticketId, data.returnedBy);
+    });
+
+    this.socket.on('ticketSharedWithYou', (data) => {
+      console.log(`Ticket ${data.ticketId} wurde mit dir geteilt.`);
+      this.showTicketSharedAlert(data.ticketId);
       this.loadTickets();
     });
+
 
     this.loadTickets();
   }
@@ -307,5 +315,25 @@ export class WalletPage {
         console.error('Fehler beim Zurückgeben des Tickets:', error);
       },
     });
+  }
+
+  async showTicketReturnedAlert(ticketId: number, returnedBy: string) {
+    const alert = await this.alertController.create({
+      header: 'Ticket zurückgegeben',
+      message: `Das Ticket mit der ID ${ticketId} wurde von ${returnedBy} zurückgegeben.`,
+      buttons: ['OK'],
+    });
+  
+    await alert.present();
+  }
+
+  async showTicketSharedAlert(ticketId: number) {
+    const alert = await this.alertController.create({
+      header: 'Neues geteiltes Ticket',
+      message: `Ein neues Ticket mit der ID ${ticketId} wurde mit dir geteilt.`,
+      buttons: ['OK'],
+    });
+  
+    await alert.present();
   }
 }

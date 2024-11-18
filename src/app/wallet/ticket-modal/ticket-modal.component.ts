@@ -9,6 +9,7 @@ import { SessionService } from '../../session.service';
 import { PopoverController } from '@ionic/angular';
 import { DateTimePopoverComponent } from './datetime-popover.component';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-ticket-modal',
@@ -26,6 +27,7 @@ export class TicketModalComponent implements OnInit {
   availableCars: string[] = ['Audi A6', 'DS 4', 'Ford Mustang E', 'Hyundai', 'E-Class Mercedes', 'GMC'];
   activeUsers: string[] = [];
   sharedWithUser: string = '';
+  private apiUrl = environment.apiUrl;
 
   // Ticket-Details
   car: string = '';
@@ -128,7 +130,7 @@ export class TicketModalComponent implements OnInit {
   }
 
   loadActiveUsers() {
-    this.http.get<string[]>('http://localhost:3000/api/active-users').subscribe({
+    this.http.get<string[]>(`${this.apiUrl}/api/active-users`).subscribe({
       next: (data) => {
         console.log('Aktive Nutzer:', data);
         this.activeUsers = data;

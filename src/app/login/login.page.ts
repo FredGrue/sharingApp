@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { SessionService } from '../session.service';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -16,6 +17,7 @@ import { HttpClient } from '@angular/common/http';
 export class LoginPage {
   role: string = 'user'; // Standardmäßig "user"
   userName: string = '';
+  private apiUrl = environment.apiUrl;
 
   constructor(private router: Router, 
               private sessionService: SessionService,
@@ -52,7 +54,7 @@ export class LoginPage {
     // Anfrage an den Server senden, um den Nutzer zu registrieren
     if (sessionData.userName) {
       this.http
-        .post('http://localhost:3000/login', { userName: sessionData.userName })
+        .post(`${this.apiUrl}/login`, { userName: sessionData.userName })
         .subscribe({
           next: (response: any) => {
             console.log('Nutzer erfolgreich registriert:', response);

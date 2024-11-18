@@ -64,13 +64,17 @@ CREATE TABLE IF NOT EXISTS ticket_shares (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   ticketId INTEGER NOT NULL,
   sharedWith TEXT NOT NULL,
-  FOREIGN KEY (ticketId) REFERENCES tickets (id)
+  FOREIGN KEY (ticketId) REFERENCES tickets (id),
+  UNIQUE (ticketId, sharedWith)
 );
 `;
 
 db.run(createTableQuery);
 db.run(createUsersTableQuery);
 db.run(createTicketSharesTableQuery);
+
+// Tabelle löschen und neu erstellen
+
 
 // Socket.io-Verbindung
 io.on('connection', (socket) => {
@@ -135,10 +139,13 @@ app.put('/api/tickets/:id', (req, res) => {
       res.status(500).json({ error: 'Fehler beim Aktualisieren des Tickets' });
     } else {
       console.log(`Ticket mit ID ${id} erfolgreich aktualisiert.`);
+      // Emit das 'ticketUpdated'-Event mit der ID des aktualisierten Tickets
+      io.emit('ticketUpdated', { ticketId: id });
       res.status(200).json({ message: 'Ticket erfolgreich aktualisiert' });
     }
   });
 });
+
 
 app.post('/api/tickets', (req, res) => {
   const {
@@ -173,8 +180,10 @@ app.post('/api/tickets', (req, res) => {
       console.error('Fehler beim Erstellen des Tickets:', err.message);
       res.status(500).json({ error: 'Fehler beim Erstellen des Tickets' });
     } else {
-      io.emit('ticketCreated', { ticketId: this.lastID });
-      res.status(201).json({ message: 'Ticket erfolgreich erstellt', ticketId: this.lastID });
+      const ticketId = this.lastID;
+      console.log(`Neues Ticket erstellt mit ID ${ticketId}.`);
+      io.emit('ticketCreated', { ticketId });
+      res.status(201).json({ message: 'Ticket erfolgreich erstellt', ticketId });
     }
   });
 });

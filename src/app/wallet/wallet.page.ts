@@ -71,6 +71,11 @@ export class WalletPage {
       console.log('Ticket geteilt:', data);
       this.loadTickets();
     });
+
+    this.socket.on('ticketUpdated', (data) => {
+      console.log('Ticket aktualisiert:', data);
+      this.loadTickets();
+    });
   }
 
   ionViewWillEnter() {

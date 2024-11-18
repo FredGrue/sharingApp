@@ -12,6 +12,7 @@ export class SessionService {
     this.loadSessionData();
   }
 
+  // Lädt die Sitzung aus dem LocalStorage
   loadSessionData() {
     const session = localStorage.getItem('session');
     if (session) {
@@ -21,13 +22,27 @@ export class SessionService {
     }
   }
 
+  // Aktualisiert die Sitzung und speichert sie im LocalStorage
   updateSessionData(data: any) {
     localStorage.setItem('session', JSON.stringify(data));
     this.sessionData.next(data);
   }
 
+  // Löscht die Sitzung
   clearSessionData() {
     localStorage.removeItem('session');
     this.sessionData.next(null);
+  }
+
+  // Methode zum Abrufen des aktuellen Nutzernamens
+  getUserName(): string {
+    const currentSession = this.sessionData.getValue();
+    return currentSession?.userName || '';
+  }
+
+  // Methode zum Abrufen der aktuellen Rolle (user/admin)
+  getUserRole(): string {
+    const currentSession = this.sessionData.getValue();
+    return currentSession?.role || 'user';
   }
 }

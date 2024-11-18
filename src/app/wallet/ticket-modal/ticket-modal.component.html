@@ -63,13 +63,19 @@
     </ion-item>
 
     <ion-item>
-      <ion-label>Teilen mit</ion-label>
+      <ion-label position="stacked">Teilen mit</ion-label>
       <ion-select [(ngModel)]="sharedWithUser" placeholder="Nutzer auswählen">
-        <ion-select-option *ngFor="let user of activeUsers" [value]="user">{{ user }}</ion-select-option>
+        <ion-select-option *ngFor="let user of activeUsers" [value]="user">
+          {{ user }}
+        </ion-select-option>
       </ion-select>
     </ion-item>
+    
+    <ion-button expand="full" color="primary" (click)="shareTicket()">
+      Ticket teilen
+    </ion-button>
 
     <!-- Erstellen-Button -->
-    <ion-button expand="block" (click)="createTicket()">Ticket erstellen</ion-button>
+    <ion-button expand="block" (click)="saveTicket()">Ticket speichern</ion-button>
   </ion-list>
 </ion-content>

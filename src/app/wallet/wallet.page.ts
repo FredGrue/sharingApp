@@ -5,7 +5,9 @@ import { AlertController } from '@ionic/angular';
 import { TicketModalComponent } from './ticket-modal/ticket-modal.component';
 import { CommonModule } from '@angular/common';
 import { TicketService } from '../services/ticket.service';
+import { SessionService } from '../session.service';
 import { addIcons } from 'ionicons';
+import { io } from 'socket.io-client';
 import {
   logOutOutline,
   logOutSharp,
@@ -39,33 +41,59 @@ import {
 export class WalletPage {
   tickets: any[] = [];
   @ViewChild('ticketModal') ticketModal!: IonModal;
+  private socket = io('http://localhost:3000'); // WebSocket-Verbindung
 
-
-  constructor(private modalController: ModalController, 
-              private ticketService: TicketService, 
-              private alertController: AlertController) {
-        // Icons registrieren
-        this.registerIcons();
+  constructor(
+    private modalController: ModalController,
+    private ticketService: TicketService,
+    private alertController: AlertController,
+    private sessionService: SessionService
+  ) {
+    // Icons registrieren
+    this.registerIcons();
   }
 
   ngOnInit() {
-    this.loadTickets();
+    this.socket.on('connect', () => {
+      console.log('Verbindung zum WebSocket-Server hergestellt.');
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('Verbindungsfehler:', error);
+    });
+
+    this.socket.on('ticketCreated', (data) => {
+      console.log('Neues Ticket erstellt:', data);
+      this.loadTickets();
+    });
+
+    this.socket.on('ticketShared', (data) => {
+      console.log('Ticket geteilt:', data);
+      this.loadTickets();
+    });
   }
 
-  async openTicketModal(ticket: any) {
-    const modal = await this.modalController.create({
-      component: TicketModalComponent,
-      componentProps: {
-        ticket: ticket, // Übergibt das Ticket-Objekt an das Modal
-      },
-    });
-    await modal.present();
-  }
-  
   ionViewWillEnter() {
     this.loadTickets();
   }
 
+  ionViewWillLeave() {
+    this.socket.disconnect();
+    console.log('WebSocket-Verbindung geschlossen.');
+  }
+
+  async openTicketModal(ticket: any, isEditMode: boolean) {
+    const modal = await this.modalController.create({
+      component: TicketModalComponent,
+      componentProps: {
+        ticket: ticket,
+        isEditMode: isEditMode, // Modus wird an das Modal übergeben
+      },
+    });
+    await modal.present();
+  }
+
+  
   openModal() {
     this.ticketModal.present();
   }
@@ -75,28 +103,36 @@ export class WalletPage {
   }
 
   loadTickets() {
-    const currentUser = this.ticketService.getCurrentUser();
-    this.ticketService.getAssignedTickets(currentUser).subscribe({
+    const currentUser = this.sessionService.getUserName();
+    this.ticketService.getTickets().subscribe({
       next: (data: any[]) => {
-        this.tickets = data.map((ticket) => ({
-          ...ticket,
-          carName: this.getCarName(ticket.car),
-        }));
+        this.tickets = data
+          .filter(
+            (ticket) =>
+              ticket.owner === currentUser ||
+              currentUser === 'admin' ||
+              ticket.sharedWith === currentUser
+          )
+          .map((ticket) => ({
+            ...ticket,
+            carName: this.getCarName(ticket.car),
+          }));
+        console.log('Tickets loaded:', this.tickets);
       },
       error: (error) => {
-        console.error('Fehler beim Laden der Tickets:', error);
+        console.error('Error loading tickets:', error);
       },
     });
   }
   
-  // Zugewiesene Tickets abrufen
+
   getAssignedTickets(username: string) {
     return this.ticketService.getAssignedTickets(username);
   }
 
   getCarName(carId: string): string {
     const carNames: Record<string, string> = {
-      'Audi A6': 'Audi A6', 
+      'Audi A6': 'Audi A6',
       'DS 4': 'DS 4',
       'Ford Mustang E': 'Ford Mustang E',
       'Hyundai': 'Hyundai',
@@ -120,7 +156,7 @@ export class WalletPage {
     };
     return imageMap[carName] || 'assets/images/default-car.png';
   }
-  // Methode zur Registrierung der Icons
+
   registerIcons() {
     addIcons({
       'log-out-outline': logOutOutline,
@@ -148,14 +184,13 @@ export class WalletPage {
 
   useTicket(ticket: any) {
     console.log('Ticket aktivieren:', ticket);
-    // Hier kannst du das Ticket als aktiv markieren
   }
-  
+
   manageTicket(ticket: any) {
     console.log('Ticket bearbeiten:', ticket);
-    this.openTicketModal(ticket);
+    this.openTicketModal(ticket, true); // `true` für Bearbeitungsmodus
   }
-  
+
   deleteTicket(ticket: any) {
     console.log('deleteTicket() aufgerufen für Ticket ID:', ticket.id);
     this.ticketService.deleteTicket(ticket.id).subscribe({
@@ -169,11 +204,8 @@ export class WalletPage {
       },
     });
   }
-  
+
   async confirmDelete(ticket: any) {
-    console.log('Button "Delete" wurde geklickt.');
-    console.log('Lösche Ticket mit ID:', ticket.id);
-  
     const alert = await this.alertController.create({
       header: 'Bestätigung',
       message: 'Möchtest du dieses Ticket wirklich löschen?',
@@ -189,13 +221,12 @@ export class WalletPage {
           text: 'Löschen',
           role: 'destructive',
           handler: () => {
-            console.log('Bestätigung erhalten. Lösche das Ticket.');
             this.deleteTicket(ticket);
           },
         },
       ],
     });
-  
+
     await alert.present();
   }
 
@@ -204,9 +235,9 @@ export class WalletPage {
     alert.header = 'Fehler';
     alert.message = message;
     alert.buttons = ['OK'];
-  
+
     document.body.appendChild(alert);
     alert.present();
   }
-
+  
 }

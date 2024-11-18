@@ -2,8 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const http = require('http'); // Wichtig
+const { Server } = require('socket.io');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  },
+});
 const PORT = 3000;
 
 // CORS-Konfiguration für alle Ursprünge
@@ -12,6 +21,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
 
 // Middleware zum Parsen von JSON
 app.use(express.json());
@@ -26,7 +36,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// Erstelle die Tabelle "tickets", falls sie noch nicht existiert
+// Erstelle die Tabellen, falls sie noch nicht existieren
 const createTableQuery = `
 CREATE TABLE IF NOT EXISTS tickets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,10 +47,10 @@ CREATE TABLE IF NOT EXISTS tickets (
   trunkAccess INTEGER DEFAULT 0,
   engineStart INTEGER DEFAULT 0,
   speedLimit TEXT DEFAULT 'full',
-  createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+  createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+  owner TEXT
 );`;
 
-// Neue Tabellen für Nutzer und Ticket-Sharing
 const createUsersTableQuery = `
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,68 +68,79 @@ CREATE TABLE IF NOT EXISTS ticket_shares (
 );
 `;
 
-db.run(createTableQuery, (err) => {
-  if (err) {
-    console.error('Fehler beim Erstellen der Tabelle:', err.message);
-  } else {
-    console.log('Tabelle "tickets" erfolgreich erstellt oder existiert bereits');
-  }
+db.run(createTableQuery);
+db.run(createUsersTableQuery);
+db.run(createTicketSharesTableQuery);
+
+// Socket.io-Verbindung
+io.on('connection', (socket) => {
+  console.log('Ein neuer Client ist verbunden.');
+  socket.on('disconnect', () => {
+    console.log('Ein Client hat die Verbindung getrennt.');
+  });
 });
 
-// Tabellen erstellen
-db.run(createUsersTableQuery, (err) => {
-  if (err) {
-    console.error('Fehler beim Erstellen der Tabelle "users":', err.message);
-  } else {
-    console.log('Tabelle "users" erfolgreich erstellt oder existiert bereits');
-  }
-});
+// In your backend server file (e.g., index.js or app.js)
+app.get('/api/tickets', (req, res) => {
+  const query = `SELECT * FROM tickets ORDER BY createdAt DESC`;
 
-db.run(createTicketSharesTableQuery, (err) => {
-  if (err) {
-    console.error('Fehler beim Erstellen der Tabelle "ticket_shares":', err.message);
-  } else {
-    console.log('Tabelle "ticket_shares" erfolgreich erstellt oder existiert bereits');
-  }
-});
-
-const alterTicketsTableQuery = `
-ALTER TABLE tickets
-ADD COLUMN owner TEXT;
-`;
-
-db.run(alterTicketsTableQuery, (err) => {
-  if (err) {
-    console.log('Spalte "owner" existiert bereits in der Tabelle "tickets".');
-  } else {
-    console.log('Spalte "owner" erfolgreich zur Tabelle "tickets" hinzugefügt.');
-  }
-});
-
-// API-Endpunkt: Alle gültigen Tickets abrufen
-app.get('/tickets', (req, res) => {
-  console.log('GET /tickets aufgerufen');
-  const currentDate = new Date().toISOString();
-
-  const query = `
-    SELECT * FROM tickets
-    WHERE validUntil > ?
-    ORDER BY validUntil ASC;
-  `;
-
-  db.all(query, [currentDate], (err, rows) => {
+  db.all(query, [], (err, rows) => {
     if (err) {
-      console.error('Fehler beim Abrufen der Tickets:', err.message);
-      res.status(500).json({ error: 'Fehler beim Abrufen der Tickets' });
+      console.error('SQL-Fehler beim Abrufen der Tickets:', err.message);
+      res.status(500).json({ message: 'SQL-Fehler', error: err.message });
+    } else if (!rows || rows.length === 0) {
+      console.warn('Keine Tickets gefunden.');
+      res.status(404).json({ message: 'Keine Tickets gefunden' });
     } else {
-      console.log('Daten erfolgreich abgerufen:', rows);
-      res.json(rows || []);
+      res.json(rows);
     }
   });
 });
 
 // API-Endpunkt: Neues Ticket erstellen
-app.post('/tickets', (req, res) => {
+app.put('/api/tickets/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    car,
+    validUntil,
+    doorAccess,
+    windowAccess,
+    trunkAccess,
+    engineStart,
+    speedLimit,
+    owner,
+  } = req.body;
+
+  const query = `
+    UPDATE tickets
+    SET car = ?, validUntil = ?, doorAccess = ?, windowAccess = ?, trunkAccess = ?, engineStart = ?, speedLimit = ?, owner = ?
+    WHERE id = ?;
+  `;
+
+  const params = [
+    car,
+    validUntil,
+    doorAccess ? 1 : 0,
+    windowAccess ? 1 : 0,
+    trunkAccess ? 1 : 0,
+    engineStart ? 1 : 0,
+    speedLimit || 'full',
+    owner || 'Unbekannt',
+    id,
+  ];
+
+  db.run(query, params, function (err) {
+    if (err) {
+      console.error('Fehler beim Aktualisieren des Tickets:', err.message);
+      res.status(500).json({ error: 'Fehler beim Aktualisieren des Tickets' });
+    } else {
+      console.log(`Ticket mit ID ${id} erfolgreich aktualisiert.`);
+      res.status(200).json({ message: 'Ticket erfolgreich aktualisiert' });
+    }
+  });
+});
+
+app.post('/api/tickets', (req, res) => {
   const {
     car,
     validUntil,
@@ -152,100 +173,41 @@ app.post('/tickets', (req, res) => {
       console.error('Fehler beim Erstellen des Tickets:', err.message);
       res.status(500).json({ error: 'Fehler beim Erstellen des Tickets' });
     } else {
+      io.emit('ticketCreated', { ticketId: this.lastID });
       res.status(201).json({ message: 'Ticket erfolgreich erstellt', ticketId: this.lastID });
     }
   });
 });
 
-app.delete('/api/tickets/:id', (req, res) => {
-  const ticketId = req.params.id;
-  console.log(`Versuche, Ticket mit ID ${ticketId} zu löschen`);
 
-  const sql = 'DELETE FROM tickets WHERE id = ?';
+// API-Endpunkt: Ticket teilen und WebSocket-Ereignis auslösen
+app.post('/api/tickets/:ticketId/share', (req, res) => {
+  const { ticketId } = req.params;
+  const { sharedWith } = req.body;
 
-  db.run(sql, [ticketId], function (err) {
-    if (err) {
-      console.error('Fehler beim Löschen des Tickets:', err.message);
-      res.status(500).send({ error: 'Fehler beim Löschen des Tickets' });
-    } else if (this.changes === 0) {
-      console.warn(`Kein Ticket mit der ID ${ticketId} gefunden.`);
-      res.status(404).send({ error: 'Ticket nicht gefunden' });
-    } else {
-      console.log(`Ticket mit ID ${ticketId} erfolgreich gelöscht.`);
-      res.status(200).send({ message: 'Ticket erfolgreich gelöscht' });
-    }
-  });
-});
-
-// Test-Route zum Debuggen
-app.get('/test', (req, res) => {
-  res.send('Test-Route funktioniert!');
-});
-
-// Server starten
-app.listen(PORT, () => {
-  console.log(`Server läuft auf http://localhost:${PORT}`);
-});
-
-// Nutzer registrieren oder letzten Aktivitätszeitstempel aktualisieren
-app.post('/login', (req, res) => {
-  const { username } = req.body;
-
-  const query = `
-    INSERT INTO users (username, lastActive)
-    VALUES (?, datetime('now'))
-    ON CONFLICT(username)
-    DO UPDATE SET lastActive = datetime('now');
-  `;
-
-  db.run(query, [username], (err) => {
-    if (err) {
-      console.error('Fehler beim Speichern des Nutzers:', err.message);
-      res.status(500).json({ error: 'Fehler beim Speichern des Nutzers' });
-    } else {
-      res.status(200).json({ message: 'Nutzer erfolgreich registriert oder aktualisiert' });
-    }
-  });
-});
-
-// Aktive Nutzer der letzten 1 Stunde abrufen
-app.get('/active-users', (req, res) => {
-  const query = `
-    SELECT username FROM users
-    WHERE lastActive >= datetime('now', '-1 hour');
-  `;
-
-  db.all(query, [], (err, rows) => {
-    if (err) {
-      console.error('Fehler beim Abrufen der aktiven Nutzer:', err.message);
-      res.status(500).json({ error: 'Fehler beim Abrufen der aktiven Nutzer' });
-    } else {
-      res.json(rows.map((row) => row.username));
-    }
-  });
-});
-
-// Ticket mit einem Nutzer teilen
-app.post('/share-ticket', (req, res) => {
-  const { ticketId, sharedWith } = req.body;
+  if (!sharedWith) {
+    return res.status(400).json({ message: 'sharedWith ist erforderlich' });
+  }
 
   const query = `
     INSERT INTO ticket_shares (ticketId, sharedWith)
-    VALUES (?, ?);
+    VALUES (?, ?)
+    ON CONFLICT(ticketId, sharedWith) DO NOTHING;
   `;
 
   db.run(query, [ticketId, sharedWith], (err) => {
     if (err) {
       console.error('Fehler beim Teilen des Tickets:', err.message);
-      res.status(500).json({ error: 'Fehler beim Teilen des Tickets' });
+      res.status(500).json({ message: 'Fehler beim Teilen des Tickets' });
     } else {
+      io.emit('ticketShared', { ticketId, sharedWith });
       res.status(200).json({ message: 'Ticket erfolgreich geteilt' });
     }
   });
 });
 
-// Zugewiesene Tickets für einen Nutzer abrufen
-app.get('/assigned-tickets/:username', (req, res) => {
+// API-Endpunkt: Zugewiesene Tickets für einen Nutzer abrufen
+app.get('/api/assigned-tickets/:username', (req, res) => {
   const { username } = req.params;
 
   const query = `
@@ -261,6 +223,103 @@ app.get('/assigned-tickets/:username', (req, res) => {
       res.status(500).json({ error: 'Fehler beim Abrufen der zugewiesenen Tickets' });
     } else {
       res.json(rows || []);
+    }
+  });
+});
+
+// Server starten
+server.listen(PORT, () => {
+  console.log(`Server läuft auf http://localhost:${PORT}`);
+});
+
+// API-Endpunkt: Aktive Nutzer abrufen
+app.get('/api/active-users', (req, res) => {
+  const query = `
+    SELECT username, lastActive FROM users
+    ORDER BY username;
+  `;
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error('Fehler beim Abrufen der aktiven Nutzer:', err.message);
+      res.status(500).json({ error: 'Fehler beim Abrufen der aktiven Nutzer' });
+    } else {
+      console.log('Aktive Nutzer:', rows);
+      const activeUsers = rows.map((row) => row.username);
+      res.json(activeUsers);
+    }
+  });
+});
+
+// API-Endpunkt: Nutzer-Login
+app.post('/login', (req, res) => {
+  const { userName } = req.body;
+
+  if (!userName) {
+    res.status(400).json({ error: 'Nutzername fehlt' });
+    return;
+  }
+
+  const query = `
+    INSERT INTO users (username, lastActive)
+    VALUES (?, datetime('now'))
+    ON CONFLICT(username) DO UPDATE SET lastActive = datetime('now');
+  `;
+
+  db.run(query, [userName], (err) => {
+    if (err) {
+      console.error('Fehler beim Aktualisieren des Nutzers:', err.message);
+      res.status(500).json({ error: 'Fehler beim Aktualisieren des Nutzers' });
+    } else {
+      console.log(`Nutzer "${userName}" erfolgreich eingeloggt und lastActive aktualisiert.`);
+      res.status(200).json({ message: 'Login erfolgreich' });
+    }
+  });
+});
+
+// DELETE-Route für das Löschen eines Tickets
+app.delete('/api/tickets/:id', (req, res) => {
+  const ticketId = req.params.id;
+
+  if (!ticketId) {
+    res.status(400).json({ error: 'Ticket-ID fehlt' });
+    return;
+  }
+
+  const query = `DELETE FROM tickets WHERE id = ?`;
+
+  db.run(query, [ticketId], (err) => {
+    if (err) {
+      console.error('Fehler beim Löschen des Tickets:', err.message);
+      res.status(500).json({ error: 'Fehler beim Löschen des Tickets' });
+    } else {
+      console.log(`Ticket mit ID ${ticketId} erfolgreich gelöscht.`);
+      res.status(200).json({ message: 'Ticket erfolgreich gelöscht' });
+    }
+  });
+});
+
+app.post('/api/tickets/:ticketId/share', (req, res) => {
+  const { ticketId } = req.params;
+  const { sharedWith } = req.body;
+
+  if (!sharedWith) {
+    return res.status(400).json({ message: 'sharedWith ist erforderlich' });
+  }
+
+  const query = `
+    INSERT INTO ticket_shares (ticketId, sharedWith)
+    VALUES (?, ?)
+    ON CONFLICT(ticketId, sharedWith) DO NOTHING;
+  `;
+
+  db.run(query, [ticketId, sharedWith], (err) => {
+    if (err) {
+      console.error('Fehler beim Teilen des Tickets:', err.message);
+      res.status(500).json({ message: 'Fehler beim Teilen des Tickets' });
+    } else {
+      io.emit('ticketShared', { ticketId, sharedWith });
+      res.status(200).json({ message: 'Ticket erfolgreich geteilt' });
     }
   });
 });

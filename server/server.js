@@ -1,3 +1,5 @@
+//server.js
+
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
@@ -329,6 +331,33 @@ app.post('/api/tickets/:ticketId/share', (req, res) => {
     } else {
       io.emit('ticketShared', { ticketId, sharedWith });
       res.status(200).json({ message: 'Ticket erfolgreich geteilt' });
+    }
+  });
+});
+
+// API-Endpunkt: Geteiltes Ticket zurückgeben
+app.post('/api/tickets/:ticketId/return', (req, res) => {
+  const { ticketId } = req.params;
+  const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ message: 'Nutzername fehlt' });
+  }
+
+  const query = `
+    DELETE FROM ticket_shares
+    WHERE ticketId = ? AND sharedWith = ?;
+  `;
+
+  db.run(query, [ticketId, username], (err) => {
+    if (err) {
+      console.error('Fehler beim Zurückgeben des geteilten Tickets:', err.message);
+      res.status(500).json({ message: 'Fehler beim Zurückgeben des Tickets' });
+    } else {
+      console.log(`Geteiltes Ticket mit ID ${ticketId} wurde von ${username} zurückgegeben.`);
+      // WebSocket-Benachrichtigung an den Ersteller des Tickets
+      io.emit('ticketReturned', { ticketId, returnedBy: username });
+      res.status(200).json({ message: 'Ticket erfolgreich zurückgegeben' });
     }
   });
 });

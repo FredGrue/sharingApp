@@ -1,3 +1,5 @@
+//ticket-modal.component.ts
+
 import { Component, Output, EventEmitter, OnInit, Input } from '@angular/core';
 import { ModalController, IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';

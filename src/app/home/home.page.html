@@ -4,11 +4,26 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <h2>Willkommen auf dem Dashboard!</h2>
+<ion-content>
+  <ng-container *ngIf="activeTicket; else noActiveTicket">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Aktives Ticket: {{ activeTicket.carName }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Ablaufdatum: {{ activeTicket.validUntil }}</p>
+        <p>Geschwindigkeitslimit: {{ activeTicket.speedLimit }} km/h</p>
+        <p>Zugriff: Türen {{ activeTicket.doorAccess ? '✅' : '❌' }},
+           Fenster {{ activeTicket.windowAccess ? '✅' : '❌' }},
+           Kofferraum {{ activeTicket.trunkAccess ? '✅' : '❌' }},
+           Motor {{ activeTicket.engineStart ? '✅' : '❌' }}</p>
+      </ion-card-content>
+    </ion-card>
+  </ng-container>
 
-  <p *ngIf="role === 'user'">Angemeldet als Nutzer: {{ userName }}</p>
-  <p *ngIf="role === 'admin'">Angemeldet als Admin</p>
-
-  <ion-button expand="full" color="danger" (click)="onLogout()">Logout</ion-button>
+  <ng-template #noActiveTicket>
+    <ion-item>
+      <ion-label>Kein aktives Ticket ausgewählt.</ion-label>
+    </ion-item>
+  </ng-template>
 </ion-content>

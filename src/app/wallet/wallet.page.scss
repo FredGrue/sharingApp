@@ -38,3 +38,11 @@ ion-fab-button {
     color: var(--ion-color-danger);
   }
   
+  .shared-ticket-card {
+    background-color: #f0f0f0;
+    border-left: 4px solid #005e72; /* Teal-Farbe für geteilte Tickets */
+  }
+  
+  ion-button[color="danger"] {
+    --background: #dc3545;
+  }

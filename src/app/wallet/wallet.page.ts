@@ -1,3 +1,5 @@
+//wallet.page.ts
+
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalController, IonicModule } from '@ionic/angular';
 import { IonModal } from '@ionic/angular';
@@ -40,6 +42,7 @@ import {
 })
 export class WalletPage {
   tickets: any[] = [];
+  sharedTickets: any[] = [];
   @ViewChild('ticketModal') ticketModal!: IonModal;
   private socket = io('http://localhost:3000'); // WebSocket-Verbindung
 
@@ -47,7 +50,8 @@ export class WalletPage {
     private modalController: ModalController,
     private ticketService: TicketService,
     private alertController: AlertController,
-    private sessionService: SessionService
+    private sessionService: SessionService,
+    private activeTicketService: TicketService // Hinzugefügt
   ) {
     // Icons registrieren
     this.registerIcons();
@@ -76,6 +80,13 @@ export class WalletPage {
       console.log('Ticket aktualisiert:', data);
       this.loadTickets();
     });
+
+    this.socket.on('ticketReturned', (data) => {
+      console.log(`Ticket ${data.ticketId} wurde von ${data.returnedBy} zurückgegeben.`);
+      this.loadTickets();
+    });
+
+    this.loadTickets();
   }
 
   ionViewWillEnter() {
@@ -87,6 +98,7 @@ export class WalletPage {
     console.log('WebSocket-Verbindung geschlossen.');
   }
 
+  
   async openTicketModal(ticket: any, isEditMode: boolean) {
     const modal = await this.modalController.create({
       component: TicketModalComponent,
@@ -107,29 +119,39 @@ export class WalletPage {
     this.loadTickets(); // Tickets neu laden, wenn ein Ticket erstellt wurde
   }
 
-  loadTickets() {
+  async loadTickets() {
     const currentUser = this.sessionService.getUserName();
+  
+    // Eigene Tickets laden
     this.ticketService.getTickets().subscribe({
       next: (data: any[]) => {
         this.tickets = data
-          .filter(
-            (ticket) =>
-              ticket.owner === currentUser ||
-              currentUser === 'admin' ||
-              ticket.sharedWith === currentUser
-          )
+          .filter((ticket) => ticket.owner === currentUser)
           .map((ticket) => ({
             ...ticket,
-            carName: this.getCarName(ticket.car),
+            carName: this.getCarName(ticket.car), // Fahrzeugname hinzufügen
           }));
-        console.log('Tickets loaded:', this.tickets);
       },
       error: (error) => {
-        console.error('Error loading tickets:', error);
+        console.error('Fehler beim Laden der eigenen Tickets:', error);
+      },
+    });
+  
+    // Geteilte Tickets laden
+    this.ticketService.getSharedTickets(currentUser).subscribe({
+      next: (data: any[]) => {
+        this.sharedTickets = data
+          .filter((ticket) => ticket.owner !== currentUser)
+          .map((ticket) => ({
+            ...ticket,
+            carName: this.getCarName(ticket.car), // Fahrzeugname hinzufügen
+          }));
+      },
+      error: (error) => {
+        console.error('Fehler beim Laden der geteilten Tickets:', error);
       },
     });
   }
-  
 
   getAssignedTickets(username: string) {
     return this.ticketService.getAssignedTickets(username);
@@ -153,11 +175,12 @@ export class WalletPage {
 
   getCarImage(carName: string): string {
     const imageMap: Record<string, string> = {
-      'Audi A6': 'assets/images/audi.png',
-      'DS 4': 'assets/images/ds.png',
-      'Ford Mustang E': 'assets/images/ford.png',
-      'Hyundai': 'assets/images/hyundai.png',
-      'E-Class Mercedes': 'assets/images/mercedes.png',
+    'Audi A6': 'assets/images/audi.png',
+    'DS 4': 'assets/images/ds.png',
+    'Ford Mustang E': 'assets/images/ford.png',
+    'Hyundai': 'assets/images/hyundai.png',
+    'E-Class Mercedes': 'assets/images/mercedes.png',
+    'GMC': 'assets/images/gmc.png',
     };
     return imageMap[carName] || 'assets/images/default-car.png';
   }
@@ -189,6 +212,12 @@ export class WalletPage {
 
   useTicket(ticket: any) {
     console.log('Ticket aktivieren:', ticket);
+    this.activeTicketService.setActiveTicket(ticket);
+  }
+
+  useSharedTicket(ticket: any) {
+    console.log('Geteiltes Ticket aktivieren:', ticket);
+    this.activeTicketService.setActiveTicket(ticket);
   }
 
   manageTicket(ticket: any) {
@@ -244,5 +273,39 @@ export class WalletPage {
     document.body.appendChild(alert);
     alert.present();
   }
-  
+
+  async confirmReturnTicket(ticket: any) {
+    const alert = await this.alertController.create({
+      header: 'Bestätigung',
+      message: `Möchtest du das Ticket "${ticket.car}" wirklich zurückgeben?`,
+      buttons: [
+        {
+          text: 'Abbrechen',
+          role: 'cancel',
+        },
+        {
+          text: 'Zurückgeben',
+          role: 'destructive',
+          handler: () => {
+            this.returnSharedTicket(ticket);
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  returnSharedTicket(ticket: any) {
+    const currentUser = this.sessionService.getUserName();
+    this.ticketService.returnSharedTicket(ticket.id, currentUser).subscribe({
+      next: () => {
+        console.log(`Ticket ${ticket.id} wurde erfolgreich zurückgegeben.`);
+        this.sharedTickets = this.sharedTickets.filter((t) => t.id !== ticket.id);
+      },
+      error: (error) => {
+        console.error('Fehler beim Zurückgeben des Tickets:', error);
+      },
+    });
+  }
 }

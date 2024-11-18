@@ -6,6 +6,11 @@
 
 <ion-content>
   <ion-list>
+
+    <!-- Eigene Tickets -->
+    <ion-item-divider>
+      <ion-label>Eigene Tickets</ion-label>
+    </ion-item-divider>
     <ion-card *ngFor="let ticket of tickets" class="ticket-card">
       <img [src]="getCarImage(ticket.carName)" alt="{{ ticket.carName }}" class="car-image" />
       <ion-label>
@@ -18,13 +23,38 @@
            Motor {{ ticket.engineStart ? '✅' : '❌' }}</p>
       </ion-label>
 
-      <!-- Buttons am unteren Rand -->
+      <!-- Buttons am unteren Rand für eigene Tickets -->
       <div class="button-group">
         <ion-button fill="clear" (click)="useTicket(ticket)">Use</ion-button>
         <ion-button fill="clear" (click)="manageTicket(ticket)">Manage</ion-button>
         <ion-button fill="clear" color="danger" (click)="confirmDelete(ticket)">Delete</ion-button>
       </div>
     </ion-card>
+
+    <!-- Geteilte Tickets -->
+    <ion-item-divider>
+      <ion-label>Geteilte Tickets</ion-label>
+    </ion-item-divider>
+    <ion-card *ngFor="let ticket of sharedTickets" class="shared-ticket-card">
+      <img [src]="getCarImage(ticket.carName)" alt="{{ ticket.carName }}" class="car-image" />
+      <ion-label>
+        <h2>Fahrzeug: {{ ticket.carName }}</h2>
+        <p>Ablaufdatum: {{ ticket.validUntil }}</p>
+        <p>Geschwindigkeitslimit: {{ ticket.speedLimit }} km/h</p>
+        <p>Besitzer: {{ ticket.owner }}</p>
+        <p>Zugriff: Türen {{ ticket.doorAccess ? '✅' : '❌' }},
+           Fenster {{ ticket.windowAccess ? '✅' : '❌' }},
+           Kofferraum {{ ticket.trunkAccess ? '✅' : '❌' }},
+           Motor {{ ticket.engineStart ? '✅' : '❌' }}</p>
+      </ion-label>
+
+      <!-- Buttons am unteren Rand für geteilte Tickets -->
+      <div class="button-group">
+        <ion-button fill="clear" (click)="useSharedTicket(ticket)">Use</ion-button>
+        <ion-button fill="clear" color="danger" (click)="confirmReturnTicket(ticket)">Return</ion-button>
+      </div>
+    </ion-card>
+
   </ion-list>
 </ion-content>
 

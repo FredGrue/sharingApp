@@ -1,0 +1,101 @@
+<ion-header>
+    <ion-toolbar>
+      <ion-title>Neues Ticket erstellen</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="dismiss()">Schließen</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content>
+    <!-- Fortschrittsbalken -->
+    <ion-progress-bar [value]="currentStep / 4"></ion-progress-bar>
+  
+    <!-- Schritt 1: Fahrzeug auswählen -->
+    <ng-container *ngIf="currentStep === 1">
+      <ion-list>
+        <ion-item
+          *ngFor="let car of ['Audi A6', 'DS 4', 'Ford Mustang E', 'Hyundai', 'E-Class Mercedes', 'GMC']"
+          (click)="selectedCar = car; nextStep()"
+        >
+          {{ car }}
+        </ion-item>
+      </ion-list>
+    </ng-container>
+  
+    <!-- Schritt 2: Datum wählen -->
+    <ng-container *ngIf="currentStep === 2">
+        <ion-list>
+          <ion-item>
+            <ion-label>Ablaufdatum</ion-label>
+            <ion-datetime
+              [(ngModel)]="validUntil"
+              display-format="DD.MM.YYYY"
+              placeholder="Datum auswählen"
+            ></ion-datetime>
+          </ion-item>
+        </ion-list>
+    </ng-container>
+      
+  
+    <!-- Schritt 3: Berechtigungen erteilen -->
+    <ng-container *ngIf="currentStep === 3">
+      <ion-item>
+        <ion-label>Doors</ion-label>
+        <ion-toggle [(ngModel)]="permissions.doorAccess"></ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-label>Windows</ion-label>
+        <ion-toggle [(ngModel)]="permissions.windowAccess"></ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-label>Trunk</ion-label>
+        <ion-toggle [(ngModel)]="permissions.trunkAccess"></ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-label>Engine Start</ion-label>
+        <ion-toggle [(ngModel)]="permissions.engineStart"></ion-toggle>
+      </ion-item>
+    </ng-container>
+  
+    <!-- Schritt 4: Maximalgeschwindigkeit festlegen -->
+    <ng-container *ngIf="currentStep === 4">
+      <ion-list>
+        <ion-radio-group [(ngModel)]="speedLimit">
+          <ion-list-header>
+            <ion-label>Maximalgeschwindigkeit</ion-label>
+          </ion-list-header>
+          <ion-item>
+            <ion-label>80 km/h</ion-label>
+            <ion-radio value="80"></ion-radio>
+          </ion-item>
+          <ion-item>
+            <ion-label>100 km/h</ion-label>
+            <ion-radio value="100"></ion-radio>
+          </ion-item>
+          <ion-item>
+            <ion-label>130 km/h</ion-label>
+            <ion-radio value="130"></ion-radio>
+          </ion-item>
+          <ion-item>
+            <ion-label>Keine Begrenzung</ion-label>
+            <ion-radio value="full"></ion-radio>
+          </ion-item>
+        </ion-radio-group>
+      </ion-list>
+    </ng-container>
+
+    <!-- Navigation -->
+    <ion-footer>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button *ngIf="currentStep > 1" (click)="prevStep()">Zurück</ion-button>
+        </ion-buttons>
+        <ion-buttons slot="end">
+            <ion-button *ngIf="currentStep < 4" (click)="nextStep()" expand="block" color="primary">Weiter</ion-button>
+          <ion-button *ngIf="currentStep === 4" (click)="saveTicket()">Ticket speichern</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
+  </ion-content>
+  

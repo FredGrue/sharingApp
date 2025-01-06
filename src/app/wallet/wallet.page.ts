@@ -8,6 +8,7 @@ import { TicketModalComponent } from './ticket-modal/ticket-modal.component';
 import { CommonModule } from '@angular/common';
 import { TicketService } from '../services/ticket.service';
 import { SessionService } from '../session.service';
+import { TicketCreateWizardComponent } from './ticket-modal/ticket-create-wizard.component';
 import { addIcons } from 'ionicons';
 import { environment } from '../../environments/environment';
 import { io } from 'socket.io-client';
@@ -44,7 +45,11 @@ import {
 export class WalletPage {
   tickets: any[] = [];
   sharedTickets: any[] = [];
-  private socket = io(environment.socketUrl);
+  
+  private socket = io(environment.socketUrl, {
+    transports: ['websocket'], // Erzwinge WebSocket (optional)
+  });
+
   @ViewChild('ticketModal') ticketModal!: IonModal;
 
   constructor(
@@ -59,8 +64,13 @@ export class WalletPage {
   }
 
   ngOnInit() {
+    const currentUser = this.sessionService.getUserName();
+
+    // Verbindung herstellen und registrieren
+    this.socket.emit('register', currentUser);
+
     this.socket.on('connect', () => {
-      console.log('Verbindung zum WebSocket-Server hergestellt.');
+      console.log('WebSocket-Verbindung hergestellt.');
     });
 
     this.socket.on('connect_error', (error) => {
@@ -88,9 +98,56 @@ export class WalletPage {
     });
 
     this.socket.on('ticketSharedWithYou', (data) => {
-      console.log(`Ticket ${data.ticketId} wurde mit dir geteilt.`);
+      console.log(`Neues geteiltes Ticket empfangen:`, data);
+      this.loadTickets(); // Aktualisiere die Tickets
       this.showTicketSharedAlert(data.ticketId);
-      this.loadTickets();
+    });
+
+    // Ticket-Löschanfrage empfangen
+    this.socket.on('ticketDeletionRequest', (data) => {
+      const { ticketId } = data;
+      console.log(`Löschanfrage für Ticket ${ticketId} erhalten.`);
+
+      // Dialog anzeigen
+      this.alertController
+        .create({
+          header: 'Löschanfrage',
+          message: `Der Besitzer möchte das Ticket mit der ID ${ticketId} löschen. Stimmst du zu?`,
+          buttons: [
+            {
+              text: 'Ablehnen',
+              role: 'cancel',
+              handler: () => {
+                console.log('Löschung abgelehnt.');
+                this.socket.emit('confirmTicketDeletion', {
+                  ticketId,
+                  username: this.sessionService.getUserName(),
+                  confirmed: false,
+                });
+              },
+            },
+            {
+              text: 'Zustimmen',
+              role: 'destructive',
+              handler: () => {
+                console.log('Löschung bestätigt.');
+                this.socket.emit('confirmTicketDeletion', {
+                  ticketId,
+                  username: this.sessionService.getUserName(),
+                  confirmed: true,
+                });
+
+                // Aktives Ticket entfernen
+                if (this.ticketService.getActiveTicket()?.id === ticketId) {
+                  this.ticketService.clearActiveTicket();
+                }
+
+                this.loadTickets();
+              },
+            },
+          ],
+        })
+        .then((alert) => alert.present());
     });
 
 
@@ -115,6 +172,12 @@ export class WalletPage {
         isEditMode: isEditMode, // Modus wird an das Modal übergeben
       },
     });
+  
+    modal.onDidDismiss().then(() => {
+      console.log('Modal geschlossen, Tickets werden aktualisiert.');
+      this.loadTickets(); // Tickets nach dem Schließen des Modals neu laden
+    });
+  
     await modal.present();
   }
 
@@ -127,12 +190,15 @@ export class WalletPage {
     this.loadTickets(); // Tickets neu laden, wenn ein Ticket erstellt wurde
   }
 
+    
+  // wallet.page.ts
   async loadTickets() {
     const currentUser = this.sessionService.getUserName();
-  
+
     // Eigene Tickets laden
     this.ticketService.getTickets().subscribe({
       next: (data: any[]) => {
+        console.log('Erhaltene Tickets:', data); // Debug-Ausgabe
         this.tickets = data
           .filter((ticket) => ticket.owner === currentUser)
           .map((ticket) => ({
@@ -144,22 +210,26 @@ export class WalletPage {
         console.error('Fehler beim Laden der eigenen Tickets:', error);
       },
     });
-  
+
     // Geteilte Tickets laden
     this.ticketService.getSharedTickets(currentUser).subscribe({
       next: (data: any[]) => {
-        this.sharedTickets = data
-          .filter((ticket) => ticket.owner !== currentUser)
-          .map((ticket) => ({
-            ...ticket,
-            carName: this.getCarName(ticket.car), // Fahrzeugname hinzufügen
-          }));
+        if (!Array.isArray(data)) {
+          console.error('Unerwartetes Datenformat:', data);
+          return;
+        }
+        this.sharedTickets = data.map((ticket) => ({
+          ...ticket,
+          carName: this.getCarName(ticket.car),
+        }));
       },
       error: (error) => {
         console.error('Fehler beim Laden der geteilten Tickets:', error);
       },
     });
   }
+
+
 
   getAssignedTickets(username: string) {
     return this.ticketService.getAssignedTickets(username);
@@ -188,7 +258,7 @@ export class WalletPage {
     'Ford Mustang E': 'assets/images/ford.png',
     'Hyundai': 'assets/images/hyundai.png',
     'E-Class Mercedes': 'assets/images/mercedes.png',
-    'GMC': 'assets/images/gmc.png',
+    'GMC': 'assets/images/GMC.png',
     };
     return imageMap[carName] || 'assets/images/default-car.png';
   }
@@ -220,7 +290,7 @@ export class WalletPage {
 
   useTicket(ticket: any) {
     console.log('Ticket aktivieren:', ticket);
-    this.activeTicketService.setActiveTicket(ticket);
+    this.ticketService.setActiveTicket(ticket); // Setzt das aktive Ticket
   }
 
   useSharedTicket(ticket: any) {
@@ -284,7 +354,7 @@ export class WalletPage {
 
   async confirmReturnTicket(ticket: any) {
     const alert = await this.alertController.create({
-      header: 'Bestätigung',
+      header: 'Ticket zurückgeben',
       message: `Möchtest du das Ticket "${ticket.car}" wirklich zurückgeben?`,
       buttons: [
         {
@@ -300,7 +370,7 @@ export class WalletPage {
         },
       ],
     });
-
+  
     await alert.present();
   }
 
@@ -309,7 +379,7 @@ export class WalletPage {
     this.ticketService.returnSharedTicket(ticket.id, currentUser).subscribe({
       next: () => {
         console.log(`Ticket ${ticket.id} wurde erfolgreich zurückgegeben.`);
-        this.sharedTickets = this.sharedTickets.filter((t) => t.id !== ticket.id);
+        this.sharedTickets = this.sharedTickets.filter((t) => t.id !== ticket.id); // Entferne das Ticket aus der Liste
       },
       error: (error) => {
         console.error('Fehler beim Zurückgeben des Tickets:', error);
@@ -329,11 +399,37 @@ export class WalletPage {
 
   async showTicketSharedAlert(ticketId: number) {
     const alert = await this.alertController.create({
-      header: 'Neues geteiltes Ticket',
+      header: 'Ticket geteilt',
       message: `Ein neues Ticket mit der ID ${ticketId} wurde mit dir geteilt.`,
       buttons: ['OK'],
     });
   
     await alert.present();
   }
+
+  async openCreateWizard() {
+    const modal = await this.modalController.create({
+      component: TicketCreateWizardComponent,
+    });
+  
+    modal.onDidDismiss().then((result) => {
+      if (result.data) {
+        console.log('Neues Ticket wurde erstellt:', result.data);
+        // Hier kannst du eine Methode aufrufen, um das Ticket zu speichern
+        this.ticketService.createTicket(result.data).subscribe({
+          next: () => {
+            console.log('Ticket erfolgreich gespeichert.');
+            this.loadTickets();
+          },
+          error: (error) => {
+            console.error('Fehler beim Speichern des Tickets:', error);
+          },
+        });
+      }
+    });
+  
+    await modal.present();
+  }
+
 }
+

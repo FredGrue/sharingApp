@@ -4,8 +4,8 @@
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <!-- Linker Bereich: Willkommensnachricht und Benutzername -->
         <div style="text-align: left;">
-          <h3 style="margin: 0;">Willkommen, {{ userName || 'Admin' }}</h3>
-        </div>     
+          <h3 style="margin: 5;">Willkommen, {{ userName || 'Admin' }}</h3>
+        </div>   
       </div>
   
       <!-- Rechter Bereich: Timestamp -->
@@ -14,21 +14,25 @@
       </div>
 
       <!-- Icons für Inbox und Logout zentriert unter dem Text -->
-      <div style="display: flex; justify-content: left; margin-top: 10px; gap: 20px;">
-        <ion-button fill="clear" routerLink="/inbox">
-          <ion-icon name="mail-outline" size="large" color="primary"></ion-icon>
-        </ion-button>
-        <ion-button fill="clear" (click)="onLogout()">
-          <ion-icon name="log-out-outline" size="large" color="danger"></ion-icon>
-        </ion-button>
-      </div>
+      <ion-menu-toggle auto-hide="true">
+        <div class="header-icons">
+          <!-- Inbox Button -->
+          <ion-button class="icon-button" fill="clear" routerLink="/inbox">
+            <ion-icon name="mail-outline" size="large" color="primary"></ion-icon>
+          </ion-button>
+    
+          <!-- Logout Button -->
+          <ion-button class="icon-button" fill="clear" (click)="onLogout()">
+            <ion-icon name="log-out-outline" size="large" color="danger"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-menu-toggle>
     </ion-toolbar>
   </ion-header>
   
 
   <ion-content>
     <ion-list>
-
 
       <!-- Dynamische Menüpunkte je nach Rolle -->
       <ion-menu-toggle auto-hide="true">

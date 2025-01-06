@@ -1,27 +1,20 @@
-#container {
-  text-align: center;
-
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
-}
-
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-
-  color: #8c8c8c;
-
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
-}
+/* Anzeige, wenn ein aktives Ticket vorhanden ist */
+.active-ticket ion-card {
+    height: 100%; /* Passt die Größe an das Display an */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+  }
+  
+  /* Anzeige, wenn kein Ticket ausgewählt ist */
+  .no-active-ticket {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Positioniert den Inhalt oben */
+    align-items: center;
+    height: 100%;
+    padding-top: 50px; /* Platz zwischen Header und Inhalt */
+    text-align: center;
+  }
+  

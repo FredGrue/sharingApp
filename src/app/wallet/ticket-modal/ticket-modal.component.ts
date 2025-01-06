@@ -47,7 +47,8 @@ export class TicketModalComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadActiveUsers();
+    const currentUser = this.sessionService.getUserName(); // Aktuellen Nutzer abrufen
+    this.loadActiveUsers(currentUser); // Beim Laden der Nutzer filtern
     if (this.isEditMode && this.ticket) {
       this.loadTicketData();
     }
@@ -96,19 +97,19 @@ export class TicketModalComponent implements OnInit {
       speedLimit: this.speedLimit,
       owner: currentUser,
     };
-
+  
     if (this.isEditMode) {
       // Ticket aktualisieren
       if (!this.ticket || !this.ticket.id) {
         console.error('Kein gültiges Ticket zum Aktualisieren gefunden.');
         return;
       }
-
+  
       this.ticketService.updateTicket(this.ticket.id, ticketData).subscribe({
         next: (response: any) => {
           console.log('Ticket erfolgreich aktualisiert:', response);
-          this.ticketCreated.emit();
-          this.dismiss();
+          this.ticketCreated.emit(); // Event auslösen, falls benötigt
+          this.dismiss(); // Modal schließen
         },
         error: (error: any) => {
           console.error('Fehler beim Aktualisieren des Tickets:', error);
@@ -119,8 +120,8 @@ export class TicketModalComponent implements OnInit {
       this.ticketService.createTicket(ticketData).subscribe({
         next: (response: any) => {
           console.log('Neues Ticket erfolgreich erstellt:', response);
-          this.ticketCreated.emit();
-          this.dismiss();
+          this.ticketCreated.emit(); // Event auslösen, falls benötigt
+          this.dismiss(); // Modal schließen
         },
         error: (error: any) => {
           console.error('Fehler beim Erstellen des Tickets:', error);
@@ -128,33 +129,35 @@ export class TicketModalComponent implements OnInit {
       });
     }
   }
+  
 
-  loadActiveUsers() {
-    this.http.get<string[]>(`${this.apiUrl}/api/active-users`).subscribe({
-      next: (data) => {
-        console.log('Aktive Nutzer:', data);
-        this.activeUsers = data;
+  loadActiveUsers(currentUser: string) {
+    this.http.get<{ data: { username: string; status: string }[] }>(`${this.apiUrl}/api/active-users`).subscribe({
+      next: (response) => {
+        console.log('API-Antwort für aktive Nutzer:', response);
+        // Filtern: Alle Nutzer außer dem aktuellen
+        this.activeUsers = response.data
+          .filter((user) => user.username !== currentUser) // Aktuellen Nutzer ausschließen
+          .map((user) => user.username); // Nur die Nutzernamen extrahieren
       },
       error: (error) => {
         console.error('Fehler beim Laden der aktiven Nutzer:', error);
+        alert('Fehler beim Laden der aktiven Nutzer.');
       },
     });
   }
 
   shareTicket() {
-    // Überprüfen, ob das Ticket existiert und eine gültige ID hat
     if (!this.ticket || !this.ticket.id) {
       console.error('Kein gültiges Ticket zum Teilen gefunden.');
       return;
     }
   
-    // Überprüfen, ob ein Benutzer ausgewählt wurde
     if (!this.sharedWithUser) {
       console.error('Kein Nutzer ausgewählt, mit dem das Ticket geteilt werden soll.');
       return;
     }
   
-    // API-Aufruf zum Teilen des Tickets
     this.ticketService.shareTicket(this.ticket.id, this.sharedWithUser).subscribe({
       next: () => {
         console.log(`Ticket ${this.ticket.id} erfolgreich mit ${this.sharedWithUser} geteilt.`);

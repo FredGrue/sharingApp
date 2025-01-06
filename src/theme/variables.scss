@@ -4,3 +4,25 @@
     --ion-font-family: 'Bahnschrift Light', sans-serif;
   }
 
+/* Globale Farben */
+/* Brand-Farben von Marquardt */
+:root {
+  --ion-color-primary: #009a9b; /* Teal */
+  --ion-color-primary-rgb: 0, 154, 155;
+
+  --ion-color-primary-contrast: #ffffff; /* Kontrastfarbe (Textfarbe auf Primärfarbe) */
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+
+  --ion-color-primary-shade: #003d45; /* Abgedunkelte Variante */
+  --ion-color-primary-tint: #00d1d1b9; /* Aufgehellte Variante */
+}
+
+
+:root.dark {
+  --ion-color-primary: rgb(242, 230, 26); /* Lemon für den Dark Mode */
+}
+
+:root.dark ion-button {
+  --color: var(--ion-color-primary); /* Textfarbe im Dark Mode */
+  --border-color: var(--ion-color-primary); /* Rahmen im Dark Mode */
+}

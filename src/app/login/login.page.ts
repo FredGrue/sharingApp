@@ -19,9 +19,11 @@ export class LoginPage {
   userName: string = '';
   private apiUrl = environment.apiUrl;
 
-  constructor(private router: Router, 
-              private sessionService: SessionService,
-              private http: HttpClient) {
+  constructor(
+    private router: Router,
+    private sessionService: SessionService,
+    private http: HttpClient
+  ) {
     this.checkSession();
   }
 
@@ -39,18 +41,17 @@ export class LoginPage {
     }
   }
 
-
   onLogin() {
     if (!this.role) {
       alert('Bitte wählen Sie eine Rolle aus.');
       return;
     }
-  
+
     const sessionData = {
       role: this.role,
       userName: this.role === 'user' ? this.userName : '',
     };
-  
+
     // Anfrage an den Server senden, um den Nutzer zu registrieren
     if (sessionData.userName) {
       this.http
@@ -58,8 +59,14 @@ export class LoginPage {
         .subscribe({
           next: (response: any) => {
             console.log('Nutzer erfolgreich registriert:', response);
+
+            // **Nutzernamen in localStorage speichern**
+            localStorage.setItem('userName', sessionData.userName);
+
             // Session-Daten lokal speichern
             this.sessionService.updateSessionData(sessionData);
+
+            // Navigation zur Startseite
             this.router.navigate(['/home']);
           },
           error: (error) => {

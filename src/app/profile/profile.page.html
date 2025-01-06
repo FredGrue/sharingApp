@@ -1,13 +1,148 @@
+<!--profile.page.html-->
+
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>profile</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">profile</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+  <ion-tabs>
+    <!-- Tab Buttons -->
+    <ion-tab-bar slot="top" class="custom-tab-bar">
+      <ion-tab-button
+        tab="user-info"
+        [class.active-tab]="selectedTab === 'user-info'"
+        (click)="changeTab('user-info')"
+      >
+        <ion-label>User Information</ion-label>
+      </ion-tab-button>
+    
+      <ion-tab-button
+        tab="preferences"
+        [class.active-tab]="selectedTab === 'preferences'"
+        (click)="changeTab('preferences')"
+      >
+        <ion-label>Preferences</ion-label>
+      </ion-tab-button>
+    </ion-tab-bar>
+
+    <!-- User Information Tab -->
+    <ion-tab tab="user-info" *ngIf="selectedTab === 'user-info'">
+      <form>
+        <ion-card>
+          <ion-card-content>
+            <ion-item>
+              <ion-label position="stacked">Username</ion-label>
+              <ion-input [value]="userName" disabled></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Home Address</ion-label>
+              <ion-textarea rows="2" [(ngModel)]="userInfo.homeAddress" name="homeAddress"></ion-textarea>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Date of Birth</ion-label>
+              <div style="display: flex; gap: 10px;">
+                <!-- Dropdown für Tag -->
+                <ion-select placeholder="Day" [(ngModel)]="dobDay" name="dobDay">
+                  <ion-select-option *ngFor="let day of days" [value]="day">{{ day }}</ion-select-option>
+                </ion-select>
+            
+                <!-- Dropdown für Monat -->
+                <ion-select placeholder="Month" [(ngModel)]="dobMonth" name="dobMonth">
+                  <ion-select-option *ngFor="let month of months" [value]="month.value">
+                    {{ month.name }}
+                  </ion-select-option>
+                </ion-select>
+            
+                <!-- Dropdown für Jahr -->
+                <ion-select placeholder="Year" [(ngModel)]="dobYear" name="dobYear">
+                  <ion-select-option *ngFor="let year of years" [value]="year">{{ year }}</ion-select-option>
+                </ion-select>
+              </div>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Driver Licence</ion-label>
+              <ion-select multiple="true" [(ngModel)]="userInfo.driverLicense" name="driverLicense">
+                <ion-select-option value="B">B (PKW)</ion-select-option>
+                <ion-select-option value="BE">BE (PKW mit Anhänger)</ion-select-option>
+                <ion-select-option value="A">A (Motorräder)</ion-select-option>
+                <ion-select-option value="C">C (LKW)</ion-select-option>
+                <ion-select-option value="CE">CE (LKW mit Anhänger)</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+      </form>
+    </ion-tab>
+
+    <!-- Preferences Tab -->
+    <ion-tab tab="preferences" *ngIf="selectedTab === 'preferences'">
+      <form>
+        <ion-card>
+          <ion-card-content>
+            <ion-item>
+              <ion-label position="stacked">Climate Temperature</ion-label>
+              <!-- Anzeige der aktuellen Temperatur -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                
+                <strong style="font-size: 1.2rem; color: var(--ion-color-primary);">
+                  {{ userInfo.climateTemperature }}°C
+                </strong>
+                
+              </div>
+              <!-- Der Regler -->
+              <ion-range
+                min="13"
+                max="30"
+                step="1"
+                [(ngModel)]="userInfo.climateTemperature"
+                name="climateTemperature"
+              >
+                <ion-label slot="start">13°C</ion-label>
+                <ion-label slot="end">30°C</ion-label>
+              </ion-range>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Fan Intensity</ion-label>
+              <ion-segment [(ngModel)]="userInfo.fanIntensity" name="fanIntensity">
+                <ion-segment-button value="0">0</ion-segment-button>
+                <ion-segment-button value="1">1</ion-segment-button>
+                <ion-segment-button value="2">2</ion-segment-button>
+                <ion-segment-button value="3">3</ion-segment-button>
+                <ion-segment-button value="4">4</ion-segment-button>
+              </ion-segment>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Seat Position</ion-label>
+              <ion-select [(ngModel)]="userInfo.seatPosition" name="seatPosition">
+                <ion-select-option value="Straight">Straight</ion-select-option>
+                <ion-select-option value="Normal">Normal</ion-select-option>
+                <ion-select-option value="Relaxed">Relaxed</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Favorite Color</ion-label>
+              <ion-input type="color" [(ngModel)]="userInfo.favoriteColor" name="favoriteColor"></ion-input>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+      </form>
+    </ion-tab>
+  </ion-tabs>
 </ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-button expand="block" (click)="validateAndSave()" color="primary">
+      <ion-icon name="save-outline" slot="start"></ion-icon>
+      Save
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

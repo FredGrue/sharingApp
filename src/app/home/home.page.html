@@ -1,29 +1,63 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>Dashboard</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="onLogout()">Logout</ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <ng-container *ngIf="activeTicket; else noActiveTicket">
+  <!-- Anzeige des aktiven Tickets -->
+  <div *ngIf="activeTicket; else noActiveTicket" class="active-ticket">
     <ion-card>
+      <img [src]="getCarImage(activeTicket?.carName)" alt="{{ activeTicket?.carName || 'Unbekannt' }}" />
       <ion-card-header>
-        <ion-card-title>Aktives Ticket: {{ activeTicket.carName }}</ion-card-title>
+        <ion-card-title>{{ activeTicket?.carName || 'Unbekanntes Fahrzeug' }}</ion-card-title>
+        <p>Ablaufdatum: {{ activeTicket?.validUntil || 'Nicht verfügbar' }}</p>
+        <p>Geschwindigkeitslimit: {{ activeTicket?.speedLimit || 'Nicht verfügbar' }} km/h</p>
+        <p>Zugriff:
+          Türen {{ activeTicket?.doorAccess ? '✅' : '❌' }},
+          Fenster {{ activeTicket?.windowAccess ? '✅' : '❌' }},
+          Kofferraum {{ activeTicket?.trunkAccess ? '✅' : '❌' }},
+          Motor {{ activeTicket?.engineStart ? '✅' : '❌' }}
+        </p>
       </ion-card-header>
-      <ion-card-content>
-        <p>Ablaufdatum: {{ activeTicket.validUntil }}</p>
-        <p>Geschwindigkeitslimit: {{ activeTicket.speedLimit }} km/h</p>
-        <p>Zugriff: Türen {{ activeTicket.doorAccess ? '✅' : '❌' }},
-           Fenster {{ activeTicket.windowAccess ? '✅' : '❌' }},
-           Kofferraum {{ activeTicket.trunkAccess ? '✅' : '❌' }},
-           Motor {{ activeTicket.engineStart ? '✅' : '❌' }}</p>
-      </ion-card-content>
-    </ion-card>
-  </ng-container>
+      <ion-card-footer>
+        <div class="ion-padding">
+          <ion-button expand="block" fill="outline" [disabled]="!activeTicket?.doorAccess" (click)="onActionClick('doors')">
+            Türen Entriegeln
+          </ion-button>
+          <ion-button expand="block" fill="outline" [disabled]="!activeTicket?.windowAccess" (click)="onActionClick('windows')">
+            Fenster Öffnen
+          </ion-button>
+          <ion-button expand="block" fill="outline" [disabled]="!activeTicket?.trunkAccess" (click)="onActionClick('trunk')">
+            Kofferraum Öffnen
+          </ion-button>
+          <ion-button expand="block" fill="outline" [disabled]="!activeTicket?.engineStart" (click)="onActionClick('engine')">
+            Motor Starten
+          </ion-button>
+        </div>
 
+        <!-- Ticket Deaktivieren Button -->
+        <ion-button expand="block" color="danger" (click)="onDeactivateTicket()">
+          Deactivate ticket
+        </ion-button>
+      </ion-card-footer>
+    </ion-card>
+  </div>
+
+  <!-- Kein aktives Ticket -->
   <ng-template #noActiveTicket>
-    <ion-item>
-      <ion-label>Kein aktives Ticket ausgewählt.</ion-label>
-    </ion-item>
+    <div class="no-active-ticket">
+      <ion-card>
+        <ion-card-header class="ion-text-center">
+          <p>No active ticket!</p>
+        </ion-card-header>
+        <ion-card-footer>
+          <ion-button expand="block" (click)="onCreateTicket()">To my wallet</ion-button>
+        </ion-card-footer>
+      </ion-card>
+    </div>
   </ng-template>
 </ion-content>

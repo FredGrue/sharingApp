@@ -41,13 +41,16 @@ export class AppComponent {
   menuItems: any[] = [];
   showHeader: boolean = true;
   currentTimestamp: string = '';
+  isDarkMode: boolean = false; // Dark Mode Zustand
 
   constructor(
     private router: Router,
     private sessionService: SessionService,
     private menuCtrl: MenuController,
-    private inactivityService: InactivityService
-  ) {
+    private inactivityService: InactivityService) 
+  {
+    this.initializeApp();
+
     // Icons registrieren
     this.registerIcons();
     
@@ -95,6 +98,11 @@ export class AppComponent {
       }
     });
 
+  }
+
+  initializeApp() {
+    // Prüfen, ob der Nutzer Dark Mode bevorzugt
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   }
 
   // Methode zur Aktualisierung des Timestamps
@@ -160,9 +168,17 @@ export class AppComponent {
         ];
   }
 
-  // Methode zum Ausloggen
-  onLogout() {
-    this.sessionService.clearSessionData();
-    this.router.navigate(['/login']);
-  }
+// Methode zum Ausloggen
+onLogout() {
+  // Lokale Session-Daten löschen
+  localStorage.removeItem('session');   // Entfernt die gespeicherten Session-Daten
+  localStorage.removeItem('userName'); // Entfernt den Nutzernamen
+
+  // Session-Daten im Service löschen
+  this.sessionService.clearSessionData();
+
+  // Navigation zur Login-Seite
+  this.router.navigate(['/login']);
+}
+
 }

@@ -36,3 +36,75 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
 
+
+/* Standard (Light Mode) */
+:root {
+  --ion-background-color: #ffffff;
+  --ion-text-color: #000000;
+}
+
+/* Dark Mode */
+:root.dark {
+  --ion-background-color: #0b0b0b;
+  --ion-text-color: #e5e5e5;
+}
+
+/* Diese Variablen müssen für die Hauptkomponenten gelten */
+ion-content {
+  background-color: var(--ion-background-color);
+  color: var(--ion-text-color);
+}
+
+ion-header, ion-toolbar {
+  background-color: var(--ion-background-color);
+  color: var(--ion-text-color);
+}
+
+.login-button {
+  --background: transparent; /* Hintergrund transparent */
+  --color: var(--ion-color-primary); /* Textfarbe in der Primärfarbe */
+  --border-color: var(--ion-color-primary); /* Rahmen in der Primärfarbe */
+  --border-width: 1px; /* Rahmenstärke */
+  --border-style: solid; /* Rahmenstil */
+  --border-radius: 8px; /* Abgerundete Ecken */
+  padding: 8px 16px; /* Angemessene Polsterung */
+  font-weight: 600; /* Kräftige Schrift */
+}
+
+/* Fokus- und Hover-Effekte */
+ion-button:hover, 
+ion-button:focus {
+  --background: rgba(0, 39, 43, 0.1); /* Leichtes Highlight beim Hover */
+}
+
+ion-button:disabled {
+  opacity: 0.5; /* Reduzierte Deckkraft */
+  --border-style: dashed; /* Gestrichelter Rahmen */
+}
+
+ion-header {
+  --background: rgba(255, 255, 255, 0); /* Leicht transparenter weißer Hintergrund */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Transparenter unterer Rand */
+  //padding: 8px; /* Mehr Luft im Header */
+  height: auto;
+  min-height: 56px; /* Mindesthöhe für mobile Geräte */
+}
+
+ion-toolbar {
+  --background: transparent; /* Toolbar bleibt ebenfalls transparent */
+}
+
+ion-content {
+  margin-top: 10px; /* Platz unterhalb des Headers */
+}
+
+.gradient-header {
+    background: linear-gradient(to right, #00272b, #005457); /* Gradient für den Header */
+    padding: 8px 16px;
+    color: white;
+  }
+  
+.icon-button:hover {
+  --background: rgba(255, 255, 255, 0.1); /* Dezenter Hover-Effekt */
+}
+

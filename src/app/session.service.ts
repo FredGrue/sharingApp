@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -8,7 +11,7 @@ export class SessionService {
   private sessionData = new BehaviorSubject<any>(null);
   sessionData$ = this.sessionData.asObservable();
 
-  constructor() {
+  constructor(private http: HttpClient) {
     this.loadSessionData();
   }
 
@@ -45,4 +48,15 @@ export class SessionService {
     const currentSession = this.sessionData.getValue();
     return currentSession?.role || 'user';
   }
+
+  // Fügt das aktive Ticket in der Datenbank hinzu
+  setActiveTicketInDB(ticketId: number, username: string): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/api/active-tickets`, { ticketId, username });
+  }
+
+  // Entfernt das aktive Ticket aus der Datenbank
+  clearActiveTicketInDB(ticketId: number, username: string): Observable<any> {
+    return this.http.delete(`${environment.apiUrl}/api/active-tickets/${ticketId}/${username}`);
+  }
+
 }

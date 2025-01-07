@@ -43,6 +43,7 @@ import {
   styleUrls: ['./wallet.page.scss'],
   imports: [IonicModule, CommonModule, TicketModalComponent],
 })
+
 export class WalletPage {
   tickets: any[] = [];
   sharedTickets: any[] = [];
@@ -79,12 +80,6 @@ export class WalletPage {
       console.error('Verbindungsfehler:', error);
     });
 
-    /*this.socket.on('ticketCreated', (data) => {
-      console.log('Neues Ticket erstellt:', data);
-      this.loadTickets();
-      this.showTicketCreatedAlert(data.ticketId, data.ticketName); // Erfolgs-Alert anzeigen
-    });*/
-
     this.socket.on('ticketCreated', (data) => {
       console.log('Empfangenes Event ticketCreated:', data); // Debugging
       if (data.id) {
@@ -103,9 +98,6 @@ export class WalletPage {
         console.error('Unvollständige Daten im Event:', data);
       }
     });
-    
-    
-    
     
 
     this.socket.on('ticketShared', (data) => {

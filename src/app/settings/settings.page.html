@@ -1,13 +1,52 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>settings</ion-title>
+    <ion-title>Einstellungen</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">settings</ion-title>
+      <ion-title size="large">Einstellungen</ion-title>
     </ion-toolbar>
   </ion-header>
+
+  <ion-list>
+    <!-- Standortfreigabe -->
+    <ion-item>
+      <ion-label>Standortfreigabe</ion-label>
+      <ion-toggle
+        [(ngModel)]="locationSharing"
+        (ionChange)="showLocationAlert()"
+      ></ion-toggle>
+    </ion-item>
+
+    <!-- Geofencing -->
+    <ion-item>
+      <ion-label>Geofencing aktivieren</ion-label>
+      <ion-toggle
+        [(ngModel)]="geofencing"
+        (ionChange)="showGeofencingAlert()"
+      ></ion-toggle>
+    </ion-item>
+
+    <!-- Datenschutz -->
+    <ion-item>
+      <ion-label>Datenschutz</ion-label>
+      <ion-range min="1" max="3" step="1" snaps="true" [(ngModel)]="privacyLevel">
+        <ion-label slot="start">Einfach</ion-label>
+        <ion-label slot="end">Streng</ion-label>
+      </ion-range>
+    </ion-item>
+
+    <!-- Updates -->
+    <ion-item>
+      <ion-button expand="block" (click)="checkForUpdates()">Auf Updates prüfen</ion-button>
+    </ion-item>
+
+    <!-- Support Kontakt -->
+    <ion-item>
+      <ion-button expand="block" (click)="contactSupport()">Support kontaktieren</ion-button>
+    </ion-item>
+  </ion-list>
 </ion-content>

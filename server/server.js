@@ -243,11 +243,31 @@ app.post('/api/tickets', (req, res) => {
       console.error('Fehler beim Erstellen des Tickets:', err.message);
       return res.status(500).json({ error: 'Fehler beim Erstellen des Tickets' });
     }
+
     const ticketId = this.lastID;
-    io.emit('ticketCreated', { ticketId });
-    res.status(201).json({ message: 'Ticket erfolgreich erstellt', ticketId });
+
+    // Abfrage der vollständigen Ticket-Daten
+    const selectQuery = `SELECT * FROM tickets WHERE id = ?`;
+    db.get(selectQuery, [ticketId], (err, ticket) => {
+      if (err) {
+        console.error('Fehler beim Abrufen des Tickets:', err.message);
+        return res.status(500).json({ error: 'Fehler beim Abrufen des Tickets' });
+      }
+
+      if (!ticket) {
+        console.error('Kein Ticket gefunden mit ID:', ticketId);
+        return res.status(404).json({ error: 'Ticket nicht gefunden.' });
+      }
+
+      console.log('Vollständige Ticket-Daten:', ticket); // Debugging
+
+      // Event senden mit vollständigen Daten
+      io.emit('ticketCreated', ticket);
+      res.status(201).json({ message: 'Ticket erfolgreich erstellt', ticket });
+    });
   });
 });
+
 
 // Ticket löschen
 app.delete('/api/tickets/:id', (req, res) => {

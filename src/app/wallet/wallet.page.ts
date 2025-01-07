@@ -4,6 +4,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalController, IonicModule } from '@ionic/angular';
 import { IonModal } from '@ionic/angular';
 import { AlertController } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { TicketModalComponent } from './ticket-modal/ticket-modal.component';
 import { CommonModule } from '@angular/common';
 import { TicketService } from '../services/ticket.service';
@@ -57,7 +58,8 @@ export class WalletPage {
     private ticketService: TicketService,
     private alertController: AlertController,
     private sessionService: SessionService,
-    private activeTicketService: TicketService // Hinzugefügt
+    private activeTicketService: TicketService,
+    private router: Router
   ) {
     // Icons registrieren
     this.registerIcons();
@@ -77,10 +79,34 @@ export class WalletPage {
       console.error('Verbindungsfehler:', error);
     });
 
-    this.socket.on('ticketCreated', (data) => {
+    /*this.socket.on('ticketCreated', (data) => {
       console.log('Neues Ticket erstellt:', data);
       this.loadTickets();
+      this.showTicketCreatedAlert(data.ticketId, data.ticketName); // Erfolgs-Alert anzeigen
+    });*/
+
+    this.socket.on('ticketCreated', (data) => {
+      console.log('Empfangenes Event ticketCreated:', data); // Debugging
+      if (data.id) {
+        console.log('Neues Ticket empfangen:', data);
+        // Füge das neue Ticket der Liste hinzu
+        if (data.owner === this.sessionService.getUserName()) {
+          this.showTicketCreatedAlert(data.id, data.ticketName);
+          this.tickets.push({
+            ...data,
+            carName: this.getCarName(data.car), // Fahrzeugname hinzufügen
+          });
+        } else {
+          console.log('Neues Ticket gehört nicht dem aktuellen Benutzer.');
+        }
+      } else {
+        console.error('Unvollständige Daten im Event:', data);
+      }
     });
+    
+    
+    
+    
 
     this.socket.on('ticketShared', (data) => {
       console.log('Ticket geteilt:', data);
@@ -291,7 +317,9 @@ export class WalletPage {
   useTicket(ticket: any) {
     console.log('Ticket aktivieren:', ticket);
     this.ticketService.setActiveTicket(ticket); // Setzt das aktive Ticket
+    this.showUseTicketAlert(ticket); // Erfolgs-Alert anzeigen
   }
+  
 
   useSharedTicket(ticket: any) {
     console.log('Geteiltes Ticket aktivieren:', ticket);
@@ -317,6 +345,32 @@ export class WalletPage {
     });
   }
 
+  async showUseTicketAlert(ticket: any) {
+    const alert = await this.alertController.create({
+      header: 'Ticket Aktiviert',
+      message: `Das Ticket "${ticket.carName}" wurde erfolgreich aktiviert. Möchtest du direkt zum aktiven Ticket wechseln?`,
+      buttons: [
+        {
+          text: 'Schließen',
+          role: 'cancel',
+          handler: () => {
+            console.log('Benutzer bleibt auf der aktuellen Seite.');
+          },
+        },
+        {
+          text: 'Zum Ticket wechseln',
+          handler: () => {
+            console.log('Benutzer navigiert zur Home-Seite.');
+            this.router.navigate(['/home']); // Navigation zur Home-Seite
+          },
+        },
+      ],
+    });
+  
+    await alert.present();
+  }
+
+  
   async confirmDelete(ticket: any) {
     const alert = await this.alertController.create({
       header: 'Bestätigung',
@@ -407,6 +461,18 @@ export class WalletPage {
     await alert.present();
   }
 
+
+  async showTicketCreatedAlert(ticketId: number, ticketName: string) {
+    const alert = await this.alertController.create({
+      header: 'Erfolg',
+      message: `Das Ticket (ID: ${ticketId}) wurde erfolgreich erstellt.`,
+      buttons: ['OK'],
+    });
+  
+    await alert.present();
+  }
+
+  
   async openCreateWizard() {
     const modal = await this.modalController.create({
       component: TicketCreateWizardComponent,

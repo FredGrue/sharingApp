@@ -155,6 +155,13 @@ export class TicketCreateWizardComponent {
   
     this.isSubmitting = true; // Blockiere weitere Aufrufe
     const currentUser = this.sessionService.getUserName();
+    console.log('Ticket Wizard - Aktueller Benutzer:', currentUser); // Debugging
+
+    if (!currentUser) {
+      console.error('Benutzername ist nicht gesetzt. Überprüfe SessionService.');
+      return; // Abbrechen, wenn Benutzername fehlt
+    }
+
     const ticketData = {
       car: this.selectedCar,
       validUntil: this.validUntil,
@@ -165,6 +172,8 @@ export class TicketCreateWizardComponent {
       speedLimit: this.speedLimit,
       owner: currentUser,
     };
+
+    console.log('Ticket-Daten vor dem Senden:', ticketData); // Debugging
   
     if (this.isEditMode) {
       // Ticket aktualisieren
@@ -190,6 +199,7 @@ export class TicketCreateWizardComponent {
       this.ticketService.createTicket(ticketData).subscribe({
         next: (response: any) => {
           console.log('Neues Ticket erfolgreich erstellt:', response);
+          console.log('Ticket-Daten nach dem Senden:', ticketData); // Debugging
           this.ticketCreated.emit();
           this.dismiss();
         },

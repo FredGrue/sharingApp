@@ -7,8 +7,8 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://192.168.0.61:3000', // Ersetze hier mit deiner lokalen IP-Adresse
-  socketUrl: 'http://192.168.0.61:3000',
+  apiUrl: 'http://192.168.0.121:3000', // Ersetze hier mit deiner lokalen IP-Adresse
+  socketUrl: 'http://192.168.0.121:3000',
 };
 
 

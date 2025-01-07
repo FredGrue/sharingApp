@@ -47,10 +47,6 @@ export class HomePage {
       console.log('WebSocket-Verbindung hergestellt.');
     });
 
-    this.socket.on('ticketCreated', (data) => {
-      console.log('Neues Ticket erstellt:', data);
-      this.showNotification('Neues Ticket', `Ein neues Ticket wurde erstellt (ID: ${data.ticketId}).`);
-    });
 
     this.socket.on('ticketSharedWithYou', (data) => {
       console.log('Ticket geteilt:', data);

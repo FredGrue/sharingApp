@@ -47,7 +47,6 @@ export class HomePage {
       console.log('WebSocket-Verbindung hergestellt.');
     });
 
-
     this.socket.on('ticketSharedWithYou', (data) => {
       console.log('Ticket geteilt:', data);
       this.showNotification('Ticket geteilt', `Ein neues Ticket (ID: ${data.ticketId}) wurde mit dir geteilt.`);
